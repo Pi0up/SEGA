@@ -1,0 +1,18 @@
+# Dependencies
+node_modules/
+tools/node_modules/
+
+# Build artifacts
+dist/
+tools/dist/
+
+# Audit outputs & test results
+.audit-results/
+screenshots/
+*.log
+
+# OS & Editor
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/

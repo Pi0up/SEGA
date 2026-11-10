@@ -1,0 +1,28 @@
+{
+  "name": "ergonomic-review-tools",
+  "version": "1.0.0",
+  "description": "Outils d'audit ergonomique automatisé (Playwright + Analyseur statique) pour le skill Ergonomic Reviewer",
+  "main": "dist/index.js",
+  "bin": {
+    "ergo-audit": "./dist/index.js"
+  },
+  "scripts": {
+    "build": "tsc",
+    "start": "node dist/index.js",
+    "audit": "node dist/index.js audit",
+    "audit:code": "node dist/index.js code"
+  },
+  "keywords": ["ux", "ergonomics", "bastien-scapin", "nielsen", "playwright", "audit"],
+  "author": "Antigravity UX Team",
+  "license": "MIT",
+  "dependencies": {
+    "@axe-core/playwright": "^4.10.1",
+    "chalk": "^4.1.2",
+    "commander": "^12.1.0",
+    "playwright": "^1.49.1"
+  },
+  "devDependencies": {
+    "@types/node": "^20.14.0",
+    "typescript": "^5.4.5"
+  }
+}
