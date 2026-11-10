@@ -95,7 +95,9 @@ Pour allier **qualité logicielle absolue** et **rapidité d'itération maximale
   ```bash
   cd tools
   # Validation ciblée du scanner statique sur une fixture de test
-  node dist/index.js code ../examples/demo-app/BadCheckoutForm.tsx
+  node dist/index.js code -p ../examples/demo-app/BadCheckoutForm.tsx
+  # Ou depuis la racine du workspace :
+  # npm test
   ```
 - **Validation globale avant PR** : Avant d'ouvrir une PR, recompilez systématiquement le projet (`npm run build` dans `tools`) et vérifiez que `git status` est irréprochable.
 
