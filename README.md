@@ -63,6 +63,24 @@ npm run build
 
 ---
 
+### Vérification & Suite de Tests Automatisés
+
+Le projet applique une règle stricte : **tout doit être testé et passant avant d'être livré**.
+
+Depuis la racine du projet :
+```bash
+# Vérification globale complète : Typecheck + Tests Vitest + Build TypeScript + Audit fixture
+npm run check
+
+# Exécution rapide des tests unitaires et d'intégration Vitest (29 tests)
+npm run test:unit
+
+# Vérification stricte des types TypeScript (tsc --noEmit)
+npm run typecheck
+```
+
+---
+
 ### Test 1 : Audit statique de code source (Rapide)
 
 Ce test analyse les fichiers sources frontend (React, Vue, HTML) sans lancer de navigateur.  

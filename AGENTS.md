@@ -79,27 +79,34 @@ Les messages de commit doivent strictement respecter la spécification **Convent
 
 ---
 
-## 4. Tests et Débit de Travail : Local vs CI
+## 4. Tests et Chaîne de Validation : "Tout Doit Être Testé et Passant Avant d'Être Livré"
 
-Pour allier **qualité logicielle absolue** et **rapidité d'itération maximale**, nous appliquons un compromis pragmatique entre l'environnement local et l'environnement CI :
+Pour allier **qualité logicielle absolue**, **détection précoce des régressions** et **rapidité d'itération**, le projet impose une règle stricte : **aucun code ne peut être livré ou fusionné sans passer l'intégralité de la suite de vérification**.
+
+### Pipeline de validation complet (`npm run check`)
+La commande standard `npm run check` (ou `npm test`) exécute séquentiellement :
+1. **Typecheck strict (`npm run typecheck`)** : Vérification statique des types TypeScript (`tsc --noEmit`) sans tolérance pour les erreurs TS.
+2. **Tests unitaires et d'intégration (`npm run test:unit`)** : Exécution de la suite Vitest couvrant le calcul du score SEGA, la matrice heuristique, les analyseurs statiques, l'accessibilité WCAG et la génération des rapports.
+3. **Build de production (`npm run build`)** : Compilation TypeScript du package `tools/` vers `tools/dist/`.
+4. **Test de régression de bout en bout (`npm run test:fixture`)** : Audit statique réel exécuté sur la fixture d'exemple `examples/demo-app/BadCheckoutForm.tsx` pour valider la génération du rapport Markdown.
 
 ### En Pull Request (CI GitHub Actions) : Zéro compromis
-- **La compilation TypeScript doit réussir sans la moindre erreur (`cd tools && npm run build`).**
-- Les audits de régression sur les fixtures d'exemple (`examples/demo-app/`) doivent s'exécuter avec succès.
+- Le pipeline CI GitHub Actions exécute automatiquement chaque palier : typecheck, tests unitaires, build TypeScript et audit de régression.
 - Aucun fichier temporaire d'audit (`.audit-results/`) ne doit être versionné.
-- Tout échec de compilation ou de test bloque le merge de la PR.
+- **Tout échec sur l'un des paliers bloque immédiatement le merge de la PR.**
 
 ### En local : Accélérer la boucle de feedback
-- **Commits intermédiaires rapides** : Pendant la phase de développement actif, il est permis d'effectuer des commits atomiques intermédiaires sans systématiquement recompiler l'intégralité des modules à chaque ligne éditée.
-- **Tests ciblés** : Exécutez en priorité l'analyseur statique sur une fixture dédiée pour valider votre logique en une fraction de seconde :
+- **Tests unitaires ciblés** : Exécutez Vitest en mode watch ou ciblée pendant le développement :
   ```bash
   cd tools
-  # Validation ciblée du scanner statique sur une fixture de test
-  node dist/index.js code -p ../examples/demo-app/BadCheckoutForm.tsx
-  # Ou depuis la racine du workspace :
-  # npm test
+  npm test              # Exécution unique des tests unitaires
+  npx vitest tests/sega-calculator.test.ts # Test unitaire ciblé
   ```
-- **Validation globale avant PR** : Avant d'ouvrir une PR, recompilez systématiquement le projet (`npm run build` dans `tools`) et vérifiez que `git status` est irréprochable.
+- **Validation globale obligatoire avant livraison / PR** :
+  ```bash
+  # Depuis la racine du projet
+  npm run check
+  ```
 
 ---
 
@@ -123,7 +130,7 @@ Afin de préserver la vélocité sans introduire de pollution dans le dépôt :
    - Branche dédiée (`feat/...`, `fix/...`, `docs/...`) — jamais de travail direct sur `main`
    - Actions Git automatiques au fur et à mesure (commits atomiques et pushs continus)
    - Commits conventionnels et itérations locales rapides
-   - Compilation TypeScript sans faute avant toute ouverture de PR
+   - **Validation `npm run check` passant à 100% (typecheck + tests + build + régression) avant livraison ou PR**
    - Merge sur `main` uniquement via PR (hotfix direct sur `main` réservé aux urgences absolues)
 
 ---
