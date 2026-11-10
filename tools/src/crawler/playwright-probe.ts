@@ -40,7 +40,9 @@ export async function runPlaywrightProbe(options: ProbeOptions): Promise<{ findi
       }
     });
 
-    await page.goto(options.url, { waitUntil: 'networkidle', timeout: 30000 });
+    await page.goto(options.url, { waitUntil: 'domcontentloaded', timeout: 30000 });
+    await page.waitForLoadState('load', { timeout: 15000 }).catch(() => {});
+    await page.waitForTimeout(2000); // Laisser le temps aux rendus dynamiques et polices
     await page.screenshot({ path: desktopScreenshot, fullPage: false });
 
     // Console errors finding (Axe 5 : Gestion des erreurs)
@@ -180,7 +182,9 @@ export async function runPlaywrightProbe(options: ProbeOptions): Promise<{ findi
       hasTouch: true
     });
     const mobilePage = await mobileContext.newPage();
-    await mobilePage.goto(options.url, { waitUntil: 'networkidle', timeout: 30000 });
+    await mobilePage.goto(options.url, { waitUntil: 'domcontentloaded', timeout: 30000 });
+    await mobilePage.waitForLoadState('load', { timeout: 15000 }).catch(() => {});
+    await mobilePage.waitForTimeout(2000);
     await mobilePage.screenshot({ path: mobileScreenshot, fullPage: false });
 
     // Check horizontal overflow
