@@ -2,8 +2,9 @@ import { chromium } from 'playwright';
 import AxeBuilder from '@axe-core/playwright';
 import * as path from 'path';
 import * as fs from 'fs';
-import { Finding, WcagReportData } from '../types';
+import { Finding, WcagReportData, AuditScreenshotData } from '../types';
 import { runWcagAnalysis } from '../wcag';
+import { annotateAndCaptureScreenshots } from '../visual';
 
 export interface ProbeOptions {
   url: string;
@@ -16,10 +17,7 @@ export interface ProbeOptions {
 
 export interface ProbeResult {
   findings: Finding[];
-  screenshots: {
-    desktop: string;
-    mobile: string;
-  };
+  screenshots: AuditScreenshotData;
   wcag?: WcagReportData;
 }
 
@@ -34,6 +32,8 @@ export async function runPlaywrightProbe(options: ProbeOptions): Promise<ProbeRe
   const findings: Finding[] = [];
   let findingCounter = 1;
   let wcagReport: WcagReportData | undefined;
+  let desktopAnnotated: string | undefined;
+  let desktopSnippets: Array<{ findingId: string; path: string; title: string; markerNumber: number }> = [];
 
   const nextId = () => `SPEC-${String(findingCounter++).padStart(2, '0')}`;
 
@@ -96,13 +96,15 @@ export async function runPlaywrightProbe(options: ProbeOptions): Promise<ProbeRe
         const axeResults = await new AxeBuilder({ page }).analyze();
         for (const violation of axeResults.violations) {
           if (violation.id === 'color-contrast') {
+            const selector = violation.nodes[0]?.target.join(' ');
             findings.push({
               id: nextId(),
               axis: 'axis-1',
               bastienScapinRule: '1.4 Lisibilité',
               nielsenRule: '#8 Design esthétique et minimaliste',
               title: 'Défaut de contraste typographique (non-conformité WCAG)',
-              location: violation.nodes[0]?.target.join(' ') || 'Éléments textuels variés',
+              location: selector || 'Éléments textuels variés',
+              selector,
               severity: 2,
               effort: 'Faible',
               isQuickWin: true,
@@ -112,13 +114,15 @@ export async function runPlaywrightProbe(options: ProbeOptions): Promise<ProbeRe
               codeSnippetAfter: 'color: #475569; /* Contraste conforme WCAG AA (≥ 4.5:1) */'
             });
           } else if (violation.id === 'label') {
+            const selector = violation.nodes[0]?.target.join(' ');
             findings.push({
               id: nextId(),
               axis: 'axis-1',
               bastienScapinRule: '1.1 Incitation',
               nielsenRule: '#1 Visibilité de l état du système',
               title: 'Champs de formulaire sans étiquette (<label>) explicite',
-              location: violation.nodes[0]?.target.join(' ') || 'Champs input',
+              location: selector || 'Champs input',
+              selector,
               severity: 3,
               effort: 'Faible',
               isQuickWin: true,
@@ -128,13 +132,15 @@ export async function runPlaywrightProbe(options: ProbeOptions): Promise<ProbeRe
               codeSnippetAfter: '<label htmlFor="userName">Votre nom</label>\n<input id="userName" type="text" />'
             });
           } else if (violation.id === 'button-name') {
+            const selector = violation.nodes[0]?.target.join(' ');
             findings.push({
               id: nextId(),
               axis: 'axis-8',
               bastienScapinRule: '8.0 Compatibilité',
               nielsenRule: '#6 Reconnaissance plutôt que rappel',
               title: 'Boutons interactifs dépourvus de texte accessible',
-              location: violation.nodes[0]?.target.join(' ') || 'Boutons icônes',
+              location: selector || 'Boutons icônes',
+              selector,
               severity: 3,
               effort: 'Faible',
               isQuickWin: true,
@@ -190,6 +196,7 @@ export async function runPlaywrightProbe(options: ProbeOptions): Promise<ProbeRe
           nielsenRule: '#6 Reconnaissance plutôt que rappel',
           title: "Éléments cliquables dépourvus d'affordance native et d'accès clavier",
           location: issue.selector,
+          selector: issue.selector,
           severity: 3,
           effort: 'Faible',
           isQuickWin: true,
@@ -199,6 +206,15 @@ export async function runPlaywrightProbe(options: ProbeOptions): Promise<ProbeRe
           codeSnippetAfter: `<button type="button" onClick={handleClick}>Action</button>`
         });
       }
+    }
+
+    // 3.5. Génération des marqueurs visuels et capture annotée (Desktop)
+    try {
+      const annotationResult = await annotateAndCaptureScreenshots(page, findings, screenshotsDir, 'desktop');
+      desktopAnnotated = annotationResult.annotatedScreenshotPath;
+      desktopSnippets = annotationResult.snippets;
+    } catch (annotationErr) {
+      console.warn(`[Ergo-Review] Avertissement: la génération des marqueurs visuels a échoué:`, annotationErr);
     }
 
     await context.close();
@@ -247,7 +263,9 @@ export async function runPlaywrightProbe(options: ProbeOptions): Promise<ProbeRe
     findings,
     screenshots: {
       desktop: desktopScreenshot,
-      mobile: mobileScreenshot
+      mobile: mobileScreenshot,
+      desktopAnnotated,
+      annotatedSnippets: desktopSnippets
     },
     wcag: wcagReport
   };

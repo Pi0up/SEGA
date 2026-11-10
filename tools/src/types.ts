@@ -79,6 +79,21 @@ export type NielsenSeverity = 0 | 1 | 2 | 3 | 4;
 
 export type EffortLevel = 'Faible' | 'Moyen' | 'Élevé';
 
+export interface VisualMarker {
+  markerNumber: number;
+  badgeLabel: string;
+  severity: NielsenSeverity;
+  color: string;
+  boundingBox?: {
+    x: number;
+    y: number;
+    width: number;
+    height: number;
+  };
+  screenshotPath?: string;
+  fullScreenshotPath?: string;
+}
+
 export interface Finding {
   id: string;
   axis: UnifiedAxisId;
@@ -99,6 +114,8 @@ export interface Finding {
   pageUrl?: string;
   pageTitle?: string;
   affectedPages?: string[];
+  selector?: string;
+  visualMarker?: VisualMarker;
 }
 
 export type WcagPrinciple = 'Perceptible' | 'Utilisable' | 'Compréhensible' | 'Robuste';
@@ -144,15 +161,25 @@ export interface WcagReportData {
   };
 }
 
+export interface AuditScreenshotData {
+  desktop?: string;
+  mobile?: string;
+  desktopAnnotated?: string;
+  mobileAnnotated?: string;
+  annotatedSnippets?: Array<{
+    findingId: string;
+    path: string;
+    title: string;
+    markerNumber: number;
+  }>;
+}
+
 export interface AuditReportData {
   target: string;
   date: string;
   segaScore: number;
   findings: Finding[];
-  screenshots?: {
-    desktop?: string;
-    mobile?: string;
-  };
+  screenshots?: AuditScreenshotData;
   metrics: {
     totalFindings: number;
     catastrophes: number;

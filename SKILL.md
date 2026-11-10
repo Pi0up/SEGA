@@ -40,6 +40,7 @@ flowchart LR
   - Exécuter la sonde automatisée Playwright (`npm run audit -- --url <URL>`).
   - Pour un audit de conformité d'accessibilité numérique, activer le module WCAG dédié via `--wcag` (ex: `--wcag` ou `--wcag 2.2AA`).
   - Examiner la capture Desktop (1440px), Mobile (375px), les contrastes WCAG, les erreurs console et le rapport a11y.
+  - **Marqueurs visuels in-situ :** Le moteur Playwright injecte automatiquement des cadres et pilules de repérage numérotées sur les éléments en anomalie et capture une cartographie visuelle annotée ainsi que des extraits (snippets) par fiche.
 - **Si du code source est fourni :**
   - Analyser les composants (formulaires, modales, boutons, navigation, états de chargement).
   - Rechercher les anti-patterns d'accessibilité et de feedback.
@@ -68,9 +69,11 @@ Balayer systématiquement les **8 méta-axes** (voir `references/unified-matrix.
 ### Phase 4 : Production du Rapport & Fiches de Spécifications
 Chaque rapport doit contenir :
 1. **Synthèse Exécutive :** Score SEGA, tableau de bord par axe, liste des Quick-Wins prioritaires.
-2. **Fiches de Spécifications Individuelles `[SPEC-XX]` :**
+2. **Cartographie Visuelle Annotée :** Capture globale avec repères numérotés et tableau de correspondance marqueur / fiche SPEC.
+3. **Fiches de Spécifications Individuelles `[SPEC-XX]` :**
    - Suivre rigoureusement le modèle défini dans `references/spec-template.md`.
-   - Inclure obligatoirement : Constat, Heuristiques enfreintes, Comportement cible pas-à-pas, Micro-copie prescrite et Diff de code (`+` / `-`).
+   - Inclure obligatoirement : Constat, Diagnostic visuel annoté in-situ (capture snippet avec balise), Heuristiques enfreintes, Comportement cible pas-à-pas, Micro-copie prescrite et Diff de code (`+` / `-`).
+4. **Annexes & Captures brutes :** Liens vers les captures d'écran Desktop (1440px), Mobile (375px) et vue annotée.
 
 ---
 
