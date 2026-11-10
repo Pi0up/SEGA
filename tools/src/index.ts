@@ -18,14 +18,27 @@ program
   .description('Audit une URL en direct avec Playwright et axe-core')
   .requiredOption('-u, --url <url>', 'URL de la page ou application à auditer')
   .option('-o, --output <dir>', 'Répertoire de sortie des rapports', '.audit-results')
+  .option('-w, --wcag [standard]', 'Activer le module de vérification WCAG (ex: 2.1AA, 2.2AA, 2.0AA, AAA)', false)
   .action(async (options) => {
+    const isWcagEnabled = options.wcag !== false && options.wcag !== undefined;
+    const wcagStandard = typeof options.wcag === 'string' ? options.wcag : '2.1AA';
+
     console.log(`[Ergo-Review] Démarrage de l'audit Playwright sur : ${options.url}`);
+    if (isWcagEnabled) {
+      console.log(`[Ergo-Review] ♿ Module WCAG activé avec le standard : ${wcagStandard}`);
+    }
     const outputDir = path.resolve(process.cwd(), options.output);
     
     try {
       const probeResult = await runPlaywrightProbe({
         url: options.url,
-        outputDir
+        outputDir,
+        wcag: isWcagEnabled
+          ? {
+              enabled: true,
+              standard: wcagStandard
+            }
+          : undefined
       });
 
       const metrics = calculateSegaScore(probeResult.findings);
@@ -38,15 +51,26 @@ program
         metrics: {
           totalFindings: probeResult.findings.length,
           ...metrics
-        }
+        },
+        wcag: probeResult.wcag
       };
 
       const markdown = buildMarkdownReport(reportData);
       const reportPath = path.join(outputDir, 'AUDIT_REPORT.md');
       fs.writeFileSync(reportPath, markdown, 'utf-8');
 
+      if (probeResult.wcag) {
+        const wcagJsonPath = path.join(outputDir, 'WCAG_REPORT.json');
+        fs.writeFileSync(wcagJsonPath, JSON.stringify(probeResult.wcag, null, 2), 'utf-8');
+      }
+
       console.log(`[Ergo-Review] ✅ Audit terminé !`);
       console.log(`[Ergo-Review] Score SEGA : ${metrics.score}/100`);
+      if (probeResult.wcag) {
+        console.log(
+          `[Ergo-Review] ♿ Taux de conformité ${probeResult.wcag.standard} : ${probeResult.wcag.complianceRate}% (${probeResult.wcag.violationsCount} violation(s))`
+        );
+      }
       console.log(`[Ergo-Review] Problèmes détectés : ${probeResult.findings.length} (dont ${metrics.quickWins} Quick-Wins)`);
       console.log(`[Ergo-Review] Rapport généré : ${reportPath}`);
     } catch (err) {
