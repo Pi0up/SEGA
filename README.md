@@ -63,6 +63,24 @@ npm run build
 
 ---
 
+### Vérification & Suite de Tests Automatisés
+
+Le projet applique une règle stricte : **tout doit être testé et passant avant d'être livré**.
+
+Depuis la racine du projet :
+```bash
+# Vérification globale complète : Typecheck + Tests Vitest + Build TypeScript + Audit fixture
+npm run check
+
+# Exécution rapide des tests unitaires et d'intégration Vitest (29 tests)
+npm run test:unit
+
+# Vérification stricte des types TypeScript (tsc --noEmit)
+npm run typecheck
+```
+
+---
+
 ### Test 1 : Audit statique de code source (Rapide)
 
 Ce test analyse les fichiers sources frontend (React, Vue, HTML) sans lancer de navigateur.  
@@ -101,11 +119,22 @@ npm run audit -- --url http://localhost:3000
 npm run audit -- --url https://example.com
 ```
 
+#### Option C : Activer le module de vérification WCAG approfondi
+Activez l'analyse de conformité WCAG via l'option `-w` ou `--wcag` (défaut : `2.1AA`, ou spécifiez `2.2AA`, `2.0AA`, `AAA`) :
+```bash
+# Vérification WCAG 2.1 AA standard
+npm run audit -- --url http://localhost:3000 --wcag
+
+# Vérification WCAG 2.2 AA
+npm run audit -- --url http://localhost:3000 --wcag 2.2AA
+```
+
 **Ce que vous allez observer :**
 - Captures d'écran automatiques dans `.audit-results/screenshots/` (Desktop 1440px et Mobile 375px).
-- Audit axe-core (ratios de contraste, boutons sans nom accessible, inputs sans label).
+- Audit axe-core et module WCAG (conformité par principe : Perceptible, Utilisable, Compréhensible, Robuste).
+- Taux de conformité WCAG calculé (ex: 82% conforme).
 - Détection des débordements horizontaux sur mobile.
-- Génération du rapport `.audit-results/AUDIT_REPORT.md`.
+- Génération du rapport `.audit-results/AUDIT_REPORT.md` (avec section dédiée WCAG) et `.audit-results/WCAG_REPORT.json`.
 
 ---
 
@@ -168,6 +197,7 @@ Chaque audit produit :
 
 ## 📚 Référentiels & Documentation
 
+- [AGENTS.md](AGENTS.md) : Directives d'ingénierie, gestion Git, isolation par Worktrees et conventions de commits.
 - [SPECIFICATIONS.md](SPECIFICATIONS.md) : Cahier des charges exhaustif.
 - [references/unified-matrix.md](references/unified-matrix.md) : Grille détaillée des 8 méta-axes unifiés.
 - [references/spec-template.md](references/spec-template.md) : Gabarit d'une fiche de spécification type.

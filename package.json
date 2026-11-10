@@ -1,0 +1,41 @@
+{
+  "name": "sega",
+  "version": "1.2.0",
+  "description": "SEGA (Système d'Évaluation Globale de l'Accessibilité et de l'Ergonomie) — Skill & Outils d'Audit Ergonomique Expert",
+  "private": true,
+  "workspaces": [
+    "tools"
+  ],
+  "scripts": {
+    "build": "npm --workspace=tools run build",
+    "typecheck": "npm --workspace=tools run typecheck",
+    "test:unit": "npm --workspace=tools run test",
+    "test:fixture": "node tools/dist/index.js code -p examples/demo-app/BadCheckoutForm.tsx",
+    "test": "npm run typecheck && npm run test:unit && npm run build && npm run test:fixture",
+    "check": "npm run test",
+    "prepack": "npm run check",
+    "audit:code": "npm --workspace=tools run audit:code",
+    "audit": "npm --workspace=tools run audit",
+    "release": "semantic-release"
+  },
+  "keywords": [
+    "ux",
+    "ergonomics",
+    "bastien-scapin",
+    "nielsen",
+    "playwright",
+    "audit",
+    "accessibility",
+    "sega"
+  ],
+  "author": "Vincent PERRIER-PERRERY",
+  "license": "MIT",
+  "devDependencies": {
+    "@semantic-release/changelog": "^6.0.3",
+    "@semantic-release/exec": "^6.0.3",
+    "@semantic-release/git": "^10.0.1",
+    "@semantic-release/github": "^10.3.5",
+    "conventional-changelog-conventionalcommits": "^8.0.0",
+    "semantic-release": "^24.2.0"
+  }
+}

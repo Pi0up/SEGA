@@ -16,3 +16,6 @@ screenshots/
 Thumbs.db
 .vscode/
 .idea/
+
+# Git Worktrees
+.worktrees/

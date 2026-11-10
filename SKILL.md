@@ -37,9 +37,9 @@ flowchart LR
 
 ### Phase 1 : Collecte & Ingestion
 - **Si une URL en direct est fournie :**
-  - **Audit mono-page standard :** `node dist/index.js audit -u <URL>`
+  - **Audit mono-page standard :** `npm run audit -- --url <URL>` (ou `node dist/index.js audit -u <URL>`)
   - **Audit exploratoire multi-pages :** `node dist/index.js audit -u <URL> --crawl --max-pages 5 --max-depth 2`
-  - **Audit avec conformité WCAG :** `node dist/index.js audit -u <URL> -c -w 2.1AA`
+  - **Audit de conformité accessibilité WCAG :** Activer l'option `--wcag` (ex: `--wcag 2.1AA` ou `--wcag 2.2AA`) en mono-page ou combiné en multi-pages (`-c -w 2.1AA`).
   - La sonde explore intelligemment les liens internes (`same-origin`), capture les écrans Desktop (1440px) et Mobile (375px) pour chaque page, vérifie les contrastes, la hiérarchie des titres, les erreurs console et les débordements horizontaux.
 - **Si du code source est fourni :**
   - Analyser les composants (formulaires, modales, boutons, navigation, états de chargement).

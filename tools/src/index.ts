@@ -89,7 +89,6 @@ program
         const crawlJsonPath = path.join(outputDir, 'CRAWL_REPORT.json');
         fs.writeFileSync(crawlJsonPath, JSON.stringify(probeResult.crawl, null, 2), 'utf-8');
       }
-
       console.log(`[Ergo-Review] ✅ Audit terminé !`);
       if (probeResult.crawl) {
         console.log(
