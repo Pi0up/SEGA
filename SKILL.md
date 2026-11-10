@@ -38,7 +38,8 @@ flowchart LR
 ### Phase 1 : Collecte & Ingestion
 - **Si une URL en direct est fournie :**
   - Exécuter la sonde automatisée Playwright (`npm run audit -- --url <URL>`).
-  - Pour un audit de conformité d'accessibilité numérique, activer le module WCAG dédié via `--wcag` (ex: `--wcag` ou `--wcag 2.2AA`).
+  - **Module d'Accessibilité Numérique (WCAG) :** Activer la vérification exhaustive des critères WCAG via `--wcag` (ex: `--wcag` ou `--wcag 2.2AA`).
+  - **Analyse Qualitative & Cognitive IA (Regard Humain) :** Activer l'analyse multimodale vision-langage via `--ai` (options: `--ai-provider <gemini|openai|anthropic>`, `--ai-model <nom>`). Le modèle analyse les captures d'écran Desktop (1440px) et Mobile (375px) ainsi que les structures DOM pour évaluer l'encombrement attentionnel, la tonalité de la micro-copie et l'affordance perçue.
   - Examiner la capture Desktop (1440px), Mobile (375px), les contrastes WCAG, les erreurs console et le rapport a11y.
   - **Marqueurs visuels in-situ :** Le moteur Playwright injecte automatiquement des cadres et pilules de repérage numérotées sur les éléments en anomalie et capture une cartographie visuelle annotée ainsi que des extraits (snippets) par fiche.
 - **Si du code source est fourni :**
@@ -64,21 +65,26 @@ Balayer systématiquement les **8 méta-axes** (voir `references/unified-matrix.
   - `1 - Cosmétique` : Imperfection visuelle légère.
 - **Score SEGA (sur 100) :**
   $$\text{SEGA} = \max\left(0, 100 - (N_{\text{critique}} \times 15 + N_{\text{majeur}} \times 7 + N_{\text{mineur}} \times 2 + N_{\text{cosmétique}} \times 0.5)\right)$$
+- **Double lecture du score SEGA (lorsque l'IA est activée) :**
+  - **Score SEGA Technique :** Basé uniquement sur les anomalies scriptées déterministes.
+  - **Score SEGA Global :** Combinant anomalies techniques et constats qualitatifs IA pondérés.
 - **Matrice Impact / Effort :** Identifier les **Quick-Wins** (Sévérité 2-3 avec effort faible).
 
 ### Phase 4 : Production du Rapport & Fiches de Spécifications
 Chaque rapport doit contenir :
-1. **Synthèse Exécutive :** Score SEGA, tableau de bord par axe, liste des Quick-Wins prioritaires.
-2. **Cartographie Visuelle Annotée :** Capture globale avec repères numérotés et tableau de correspondance marqueur / fiche SPEC.
-3. **Fiches de Spécifications Individuelles `[SPEC-XX]` :**
+1. **Synthèse Exécutive :** Score SEGA (Global et Technique), tableau de bord par axe, liste des Quick-Wins prioritaires.
+2. **Analyse Qualitative & Psychologie Cognitive (si `--ai`) :** Verdict global de l'ergonome IA, diagnostic de charge mentale, clarté du ton/micro-copie, affordance, harmonie visuelle et points forts.
+3. **Cartographie Visuelle Annotée :** Capture globale avec repères numérotés et tableau de correspondance marqueur / fiche SPEC.
+4. **Fiches de Spécifications Individuelles `[SPEC-XX]` :**
    - Suivre rigoureusement le modèle défini dans `references/spec-template.md`.
-   - Inclure obligatoirement : Constat, Diagnostic visuel annoté in-situ (capture snippet avec balise), Heuristiques enfreintes, Comportement cible pas-à-pas, Micro-copie prescrite et Diff de code (`+` / `-`).
-4. **Annexes & Captures brutes :** Liens vers les captures d'écran Desktop (1440px), Mobile (375px) et vue annotée.
+   - Inclure obligatoirement : Origine de la détection (`[IA / Qualitatif]` ou `[Script / Technique]`), Constat, Diagnostic visuel annoté in-situ (capture snippet avec balise), Heuristiques enfreintes, Comportement cible pas-à-pas, Micro-copie prescrite et Diff de code (`+` / `-`).
+5. **Annexes & Captures brutes :** Liens vers les captures d'écran Desktop (1440px), Mobile (375px) et vue annotée.
 
 ---
 
 ## 3. Commandes & Raccourcis Rapides
 
 - `/ergo audit <url>` : Lance l'audit complet d'une page web en direct.
+- `/ergo audit <url> --ai` : Lance l'audit enrichi avec l'analyse ergonomique qualitative humaine par IA (multi-provider: Gemini, OpenAI, Anthropic).
 - `/ergo code <chemin>` : Lance l'audit statique d'un dossier ou fichier de composants.
 - `/ergo spec <problème>` : Rédige une fiche de spécification UX détaillée pour un problème ciblé.
