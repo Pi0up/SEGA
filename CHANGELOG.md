@@ -2,6 +2,13 @@
 
 Toutes les modifications notables apportées au projet SEGA / Ergonomic Reviewer sont consignées dans ce fichier.
 
+## [1.1.0](https://github.com/Pi0up/SEGA/compare/v1.0.0...v1.1.0) (2026-11-10)
+
+### ✨ Features
+
+* **crawler:** integrate wcag accessibility analyzer and reporting ([dc2d8de](https://github.com/Pi0up/SEGA/commit/dc2d8de2a2a7c4553924253bf13915fabef6aa06))
+* **types:** allow optional pageUrl, pageTitle and affectedPages on Finding ([fe74230](https://github.com/Pi0up/SEGA/commit/fe742306fd11b4afb5fdc4a212f987f471d3072d))
+
 ## 1.0.0 (2026-11-10)
 
 ### ✨ Features

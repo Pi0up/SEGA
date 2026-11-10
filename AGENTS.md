@@ -24,6 +24,44 @@ Les branches doivent impérativement utiliser la casse `kebab-case` et être pr�
 - `hotfix/broken-cli-entrypoint`
 - `docs/update-unified-matrix`
 
+### Isolation des Périmètres : Utilisation Obligatoire des Git Worktrees en Multi-Agents / Multi-Conversations
+
+Dans notre environnement de travail, **plusieurs conversations et instances d'agents IA travaillent simultanément sur la même codebase sur des fonctionnalités ou des correctifs distincts**.
+
+Pour prévenir toute collision destructrice (changement de branche inopiné écrasant le travail en cours d'une autre conversation, conflits de fichiers, corruption des `node_modules` ou interférences dans les builds) :
+- **L'utilisation des Git Worktrees (`git worktree`) est obligatoire** dès qu'un agent intervient sur une tâche alors qu'une autre branche ou tâche est déjà active sur le dépôt.
+- Chaque conversation/agent dispose ainsi de son propre répertoire physique de travail isolé, lié à sa propre branche Git, sans impacter le répertoire racine ni les autres conversations en parallèle.
+
+#### Protocole opératoire des Worktrees :
+
+1. **Création d'un Worktree dédié :**
+   Les worktrees doivent être créés dans le répertoire dédié `.worktrees/<nom-branche>` (automatiquement ignoré par Git via `.gitignore`) ou dans un dossier frère :
+   ```bash
+   # Toujours rafraîchir les références distantes d'abord
+   git fetch origin
+
+   # Créer l'espace de travail isolé branché sur origin/main
+   git worktree add .worktrees/<nom-branche-ou-feature> -b <type>/<nom-branche> origin/main
+   ```
+
+2. **Exécution des travaux dans le Worktree :**
+   Toutes les modifications, commandes de build, tests et exécutions TypeScript doivent impérativement s'exécuter à l'intérieur de ce répertoire isolé :
+   ```bash
+   cd .worktrees/<nom-branche-ou-feature>/tools
+   npm run build
+   ```
+
+3. **Commits et Push depuis le Worktree :**
+   Les commits et le `git push` s'exécutent depuis le worktree sans jamais modifier la branche active du répertoire racine.
+
+4. **Nettoyage après clôture (fin de tâche ou merge de PR) :**
+   Une fois la branche poussée, la PR ouverte ou le travail validé, le worktree peut être retiré proprement sans supprimer la branche Git distante ou locale :
+   ```bash
+   # Revenir à la racine du dépôt puis supprimer le worktree
+   git worktree remove .worktrees/<nom-branche-ou-feature>
+   git worktree prune
+   ```
+
 ---
 
 ## 2. Cycle de Vie des Modifications : Pull Requests & `main`
@@ -127,6 +165,7 @@ Afin de préserver la vélocité sans introduire de pollution dans le dépôt :
    - Les fichiers sous `references/` constituent la source de vérité méthodologique (Bastien & Scapin, Nielsen). Toute modification de ces fichiers doit être justifiée dans la description du commit et documentée (`docs(matrix): ...`).
 
 4. **Synthèse des règles d'or :**
+   - Isolation par Git Worktrees (`.worktrees/`) dès que plusieurs conversations ou branches concurrentes coexistent
    - Branche dédiée (`feat/...`, `fix/...`, `docs/...`) — jamais de travail direct sur `main`
    - Actions Git automatiques au fur et à mesure (commits atomiques et pushs continus)
    - Commits conventionnels et itérations locales rapides
@@ -162,9 +201,11 @@ npx semantic-release --dry-run
 
 Pour garantir la traçabilité, éviter toute perte de travail et maintenir un historique Git clair et granulaire, **l'agent IA doit exécuter les actions Git de manière proactive et automatique au fur et à mesure de son travail**, sans attendre une demande explicite de l'utilisateur :
 
-1. **Initialisation systématique de la tâche :**
-   - Inspecter systématiquement l'état du dépôt (`git status`, `git branch`).
-   - Si les modifications concernent un nouveau sujet ou si le workspace est sur la branche principale (`main` / `master`), basculer immédiatement sur une branche dédiée (`feat/...`, `fix/...`, `chore/...`, `docs/...`). **Ne jamais développer directement sur la branche principale.**
+1. **Initialisation systématique de la tâche & Isolation par Worktree (Multi-Conversations) :**
+   - Inspecter systématiquement l'état du dépôt (`git status`, `git branch`, `git worktree list`).
+   - **Détection des activités concurrentes :** Si le répertoire racine se trouve déjà sur une branche de feature (`feat/...`, `fix/...`) ou présente des modifications en cours appartenant à une autre tâche/conversation, **ne jamais exécuter `git checkout` ou `git switch` dans le répertoire principal**.
+   - **Instanciation d'un Git Worktree :** Créer immédiatement un worktree dédié (`git worktree add .worktrees/<nom-tache> -b <type>/<nom-branche> origin/main`) pour isoler strictement votre périmètre d'intervention.
+   - Si le répertoire principal est propre et sur `main`, basculer sur une branche dédiée (ou utiliser un worktree si d'autres conversations sont susceptibles d'intervenir en parallèle).
 
 2. **Commits atomiques et réguliers au fil de l'eau :**
    - **Ne jamais accumuler l'ensemble des changements pour un unique commit en fin de session.**
@@ -178,4 +219,5 @@ Pour garantir la traçabilité, éviter toute perte de travail et maintenir un h
 4. **Clôture et propreté :**
    - Avant de rendre la main à l'utilisateur, vérifier systématiquement `git status` pour s'assurer qu'aucun fichier orphelin (*untracked*) non désiré ou modification non commitée ne subsiste.
    - Nettoyer les éventuels artefacts de test temporaires non couverts par `.gitignore`.
-   - Confirmer brièvement à l'utilisateur les commits réalisés et le statut de synchronisation de la branche.
+   - Si un worktree temporaire a terminé sa mission et a été poussé, rappeler son existence ou procéder à son nettoyage si demandé (`git worktree remove .worktrees/<nom-tache>`).
+   - Confirmer brièvement à l'utilisateur les commits réalisés, la branche/worktree utilisé et le statut de synchronisation.

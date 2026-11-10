@@ -38,6 +38,7 @@ flowchart LR
 ### Phase 1 : Collecte & Ingestion
 - **Si une URL en direct est fournie :**
   - Exécuter la sonde automatisée Playwright (`npm run audit -- --url <URL>`).
+  - Pour un audit de conformité d'accessibilité numérique, activer le module WCAG dédié via `--wcag` (ex: `--wcag` ou `--wcag 2.2AA`).
   - Examiner la capture Desktop (1440px), Mobile (375px), les contrastes WCAG, les erreurs console et le rapport a11y.
 - **Si du code source est fourni :**
   - Analyser les composants (formulaires, modales, boutons, navigation, états de chargement).
