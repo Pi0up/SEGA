@@ -37,11 +37,12 @@ flowchart LR
 
 ### Phase 1 : Collecte & Ingestion
 - **Si une URL en direct est fournie :**
-  - Exécuter la sonde automatisée Playwright (`npm run audit -- --url <URL>`).
-  - **Module d'Accessibilité Numérique (WCAG) :** Activer la vérification exhaustive des critères WCAG via `--wcag` (ex: `--wcag` ou `--wcag 2.2AA`).
+  - **Audit mono-page standard :** `npm run audit -- --url <URL>` (ou `node dist/index.js audit -u <URL>`)
+  - **Audit exploratoire multi-pages :** `node dist/index.js audit -u <URL> --crawl --max-pages 5 --max-depth 2`
+  - **Module d'Accessibilité Numérique (WCAG) :** Activer la vérification exhaustive des critères WCAG via `--wcag` (ex: `--wcag` ou `--wcag 2.2AA`), en mono-page ou combiné en multi-pages (`-c -w 2.1AA`).
   - **Analyse Qualitative & Cognitive IA (Regard Humain) :** Activer l'analyse multimodale vision-langage via `--ai` (options: `--ai-provider <gemini|openai|anthropic>`, `--ai-model <nom>`). Le modèle analyse les captures d'écran Desktop (1440px) et Mobile (375px) ainsi que les structures DOM pour évaluer l'encombrement attentionnel, la tonalité de la micro-copie et l'affordance perçue.
-  - Examiner la capture Desktop (1440px), Mobile (375px), les contrastes WCAG, les erreurs console et le rapport a11y.
   - **Marqueurs visuels in-situ :** Le moteur Playwright injecte automatiquement des cadres et pilules de repérage numérotées sur les éléments en anomalie et capture une cartographie visuelle annotée ainsi que des extraits (snippets) par fiche.
+  - La sonde explore intelligemment les liens internes (`same-origin`), capture les écrans Desktop (1440px) et Mobile (375px) pour chaque page, vérifie les contrastes, la hiérarchie des titres, les erreurs console et les débordements horizontaux.
 - **Si du code source est fourni :**
   - Analyser les composants (formulaires, modales, boutons, navigation, états de chargement).
   - Rechercher les anti-patterns d'accessibilité et de feedback.

@@ -23,6 +23,10 @@ program
   .requiredOption('-u, --url <url>', 'URL de la page ou application à auditer')
   .option('-o, --output <dir>', 'Répertoire de sortie des rapports', '.audit-results')
   .option('-w, --wcag [standard]', 'Activer le module de vérification WCAG (ex: 2.1AA, 2.2AA, 2.0AA, AAA)', false)
+  .option('-c, --crawl', 'Activer le mode exploratoire multi-pages', false)
+  .option('-p, --max-pages <number>', 'Nombre maximal de pages à explorer en mode crawl', '5')
+  .option('-d, --max-depth <number>', 'Profondeur maximale de navigation en mode crawl', '2')
+  .option('--no-same-origin', 'Autoriser l exploration hors du domaine d origine')
   .option('-a, --ai', 'Activer l analyse ergonomique qualitative par IA (regard humain)', false)
   .option('--ai-provider <provider>', 'Fournisseur d IA pour l analyse (gemini, openai, anthropic)', 'gemini')
   .option('--ai-model <model>', 'Modèle d IA spécifique à utiliser')
@@ -31,8 +35,16 @@ program
     const wcagStandard = typeof options.wcag === 'string' ? options.wcag : '2.1AA';
     const isAiEnabled = Boolean(options.ai);
     const aiProvider = (options.aiProvider as AiProvider) || 'gemini';
+    const isCrawlEnabled = options.crawl === true || (options.maxPages && parseInt(options.maxPages, 10) > 1 && options.crawl !== false);
+    const maxPages = parseInt(options.maxPages || '5', 10);
+    const maxDepth = parseInt(options.maxDepth || '2', 10);
 
     console.log(`[Ergo-Review] Démarrage de l'audit Playwright sur : ${options.url}`);
+    if (isCrawlEnabled) {
+      console.log(
+        `[Ergo-Review] 🗺️ Mode exploratoire multi-pages actif (max ${maxPages} pages, profondeur max ${maxDepth})`
+      );
+    }
     if (isWcagEnabled) {
       console.log(`[Ergo-Review] ♿ Module WCAG activé avec le standard : ${wcagStandard}`);
     }
@@ -49,6 +61,14 @@ program
           ? {
               enabled: true,
               standard: wcagStandard
+            }
+          : undefined,
+        crawl: isCrawlEnabled
+          ? {
+              enabled: true,
+              maxPages,
+              maxDepth,
+              sameOrigin: options.sameOrigin !== false
             }
           : undefined,
         ai: isAiEnabled
@@ -74,6 +94,7 @@ program
           ...metrics
         },
         wcag: probeResult.wcag,
+        crawl: probeResult.crawl,
         aiAnalysis: probeResult.aiAnalysis
       };
 
@@ -86,12 +107,22 @@ program
         fs.writeFileSync(wcagJsonPath, JSON.stringify(probeResult.wcag, null, 2), 'utf-8');
       }
 
+      if (probeResult.crawl) {
+        const crawlJsonPath = path.join(outputDir, 'CRAWL_REPORT.json');
+        fs.writeFileSync(crawlJsonPath, JSON.stringify(probeResult.crawl, null, 2), 'utf-8');
+      }
+
       if (probeResult.aiAnalysis) {
         const aiJsonPath = path.join(outputDir, 'AI_ANALYSIS.json');
         fs.writeFileSync(aiJsonPath, JSON.stringify(probeResult.aiAnalysis, null, 2), 'utf-8');
       }
 
       console.log(`[Ergo-Review] ✅ Audit terminé !`);
+      if (probeResult.crawl) {
+        console.log(
+          `[Ergo-Review] 🗺️ Exploration : ${probeResult.crawl.totalPagesExplored} page(s) auditée(s) (profondeur max : ${probeResult.crawl.maxDepth})`
+        );
+      }
       if (probeResult.aiAnalysis) {
         console.log(`[Ergo-Review] Score SEGA Global : ${metrics.globalScore}/100 | Score Technique : ${metrics.technicalScore}/100`);
         console.log(`[Ergo-Review] 🧠 Constats qualitatifs IA : ${probeResult.aiAnalysis.findings.length} (${probeResult.aiAnalysis.provider.toUpperCase()} / ${probeResult.aiAnalysis.model})`);

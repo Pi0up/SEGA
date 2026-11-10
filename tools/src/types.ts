@@ -189,6 +189,29 @@ export interface WcagReportData {
   };
 }
 
+export interface ExploredPage {
+  url: string;
+  path: string;
+  title: string;
+  status: number;
+  depth: number;
+  durationMs: number;
+  findingsCount: number;
+  wcagViolationsCount?: number;
+  screenshots?: {
+    desktop?: string;
+    mobile?: string;
+  };
+}
+
+export interface CrawlSummary {
+  enabled: boolean;
+  maxPages: number;
+  maxDepth: number;
+  totalPagesExplored: number;
+  pages: ExploredPage[];
+}
+
 export interface AuditScreenshotData {
   desktop?: string;
   mobile?: string;
@@ -221,5 +244,6 @@ export interface AuditReportData {
     globalScore?: number;
   };
   wcag?: WcagReportData;
+  crawl?: CrawlSummary;
   aiAnalysis?: AiAnalysisResult;
 }

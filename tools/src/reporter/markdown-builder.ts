@@ -90,6 +90,10 @@ export function buildMarkdownReport(data: AuditReportData): string {
         : '🔴 Risque de non-conformité majeure';
     lines.push(`| **Conformité ${data.wcag.standard}** | **${data.wcag.complianceRate}%** | ${wcagAppreciation} |`);
   }
+  if (data.crawl?.enabled) {
+    lines.push(`| **Mode d'exploration** | 🗺️ Multi-pages exploratoire | Profondeur max : ${data.crawl.maxDepth} |`);
+    lines.push(`| **Pages explorées** | **${data.crawl.totalPagesExplored}** / ${data.crawl.maxPages} max | Couverture multi-écrans |`);
+  }
   lines.push(`| Total Problèmes Détectés | **${data.metrics.totalFindings}** | - |`);
   lines.push(`| Catastrophes d'Utilisabilité (Sévérité 4) | **${data.metrics.catastrophes}** | 🚨 Blocage critique |`);
   lines.push(`| Problèmes Majeurs (Sévérité 3) | **${data.metrics.majors}** | ⚠️ Gêne importante |`);
@@ -97,6 +101,31 @@ export function buildMarkdownReport(data: AuditReportData): string {
   lines.push(`| Imperfections Cosmétiques (Sévérité 1) | **${data.metrics.cosmetics}** | 🎨 Polissage |`);
   lines.push(`| **Quick-Wins Identifiés** | **${data.metrics.quickWins}** | ⚡ Gain immédiat à faible effort |`);
   lines.push(``);
+
+  // Section Exploratoire si crawl activé
+  if (data.crawl?.enabled && data.crawl.pages.length > 0) {
+    lines.push(`## 🗺️ Cartographie & Exploration Multi-Pages`);
+    lines.push(``);
+    lines.push(
+      `L'audit a exploré **${data.crawl.totalPagesExplored} pages** de l'application selon un parcours heuristique automatisé (profondeur max : ${data.crawl.maxDepth}).`
+    );
+    lines.push(``);
+    lines.push(`| # | Page (Chemin / URL) | Titre de la page | Profondeur | Problèmes SEGA | Violations WCAG | Captures |`);
+    lines.push(`| :---: | :--- | :--- | :---: | :---: | :---: | :--- |`);
+
+    data.crawl.pages.forEach((p, idx) => {
+      const desktopRel = p.screenshots?.desktop ? path.basename(p.screenshots.desktop) : '-';
+      const mobileRel = p.screenshots?.mobile ? path.basename(p.screenshots.mobile) : '-';
+      const wcagCell = p.wcagViolationsCount !== undefined ? `**${p.wcagViolationsCount}**` : '-';
+      const screenshotsCell =
+        desktopRel !== '-' ? `[Desktop](screenshots/${desktopRel}) · [Mobile](screenshots/${mobileRel})` : '-';
+
+      lines.push(
+        `| ${idx + 1} | \`${p.path}\`<br><small>${p.url}</small> | ${p.title || 'Sans titre'} | ${p.depth} | **${p.findingsCount}** | ${wcagCell} | ${screenshotsCell} |`
+      );
+    });
+    lines.push(``);
+  }
 
   // Cartographie visuelle des marqueurs
   if (data.screenshots?.desktopAnnotated) {
@@ -184,6 +213,20 @@ export function buildMarkdownReport(data: AuditReportData): string {
     lines.push(``);
     lines.push(`| Propriété | Détail |`);
     lines.push(`| :--- | :--- |`);
+    if (f.affectedPages && f.affectedPages.length > 1) {
+      const pageList = f.affectedPages
+        .map((u) => {
+          try {
+            return new URL(u).pathname || u;
+          } catch {
+            return u;
+          }
+        })
+        .join(', ');
+      lines.push(`| **Pages impactées** | \`${f.affectedPages.length} pages : ${pageList}\` |`);
+    } else if (f.pageUrl) {
+      lines.push(`| **Page impactée** | \`${f.pageUrl}\` |`);
+    }
     lines.push(`| **Origine de la détection** | ${f.source === 'ai' ? '🧠 Analyse qualitative IA (regard humain)' : '🔍 Sonde scriptée déterministe'} |`);
     lines.push(`| **Localisation** | \`${f.location}\` |`);
     lines.push(`| **Heuristique Bastien & Scapin** | ${f.bastienScapinRule} |`);

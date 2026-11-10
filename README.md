@@ -165,6 +165,28 @@ npm run audit -- --url http://localhost:3000 --ai --ai-provider gemini --ai-mode
 
 ---
 
+### Test 3 : Audit exploratoire multi-pages (Mode Crawl Automatisé)
+
+Ce mode explore récursivement les liens internes (`same-origin`) d'une application ou d'un site web, capture les écrans et audite chaque page découverte.
+
+```bash
+# Exploration de 5 pages maximum jusqu'à 2 niveaux de profondeur
+node dist/index.js audit --url http://localhost:3000 --crawl --max-pages 5 --max-depth 2
+
+# Exploration multi-pages combinée avec l'audit de conformité WCAG
+node dist/index.js audit --url http://localhost:3000 -c -p 5 -w 2.1AA
+```
+
+**Ce que vous allez observer :**
+- Découverte automatique des liens de navigation (`<a href>`), filtrage des ancres, fichiers PDF/médias et domaines externes.
+- Captures d'écran Desktop et Mobile pour chaque page explorée (`screenshot-p1-...`, `screenshot-p2-...`).
+- Tableau synthétique de cartographie multi-pages dans le rapport Markdown (`AUDIT_REPORT.md`).
+- Déduplication intelligente des anomalies transversales (ex: header/nav/footer partagés) avec mention des pages affectées.
+- Consolidation des scores SEGA et des taux de conformité WCAG globaux.
+- Export cartographique complet dans `.audit-results/CRAWL_REPORT.json`.
+
+---
+
 ### Test 3 : Tester le Skill Antigravity dans le chat
 
 Le skill `ergonomic-review` peut être sollicité directement par conversation avec l'agent.

@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <title>Contact & Support - Démonstration</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 20px;
+      /* Débordement horizontal pour tester la détection mobile */
+      min-width: 1200px;
+    }
+    .low-contrast {
+      color: #cbd5e1;
+      background: #fff;
+    }
+  </style>
+</head>
+<body>
+  <nav aria-label="Navigation principale">
+    <ul>
+      <li><a href="index.html">Accueil</a></li>
+      <li><a href="products.html">Nos Produits</a></li>
+      <li><a href="contact.html">Support & Contact</a></li>
+    </ul>
+  </nav>
+
+  <h1>Support et Formulaire de Contact</h1>
+  <p class="low-contrast">Nos équipes sont disponibles du lundi au vendredi.</p>
+
+  <form>
+    <!-- Champ input sans label -->
+    <p>
+      <input type="email" placeholder="Votre adresse email sans label" />
+    </p>
+
+    <!-- Modal sans aria-modal -->
+    <dialog open>
+      <p>Notification importante de maintenance prévue ce soir.</p>
+    </dialog>
+  </form>
+</body>
+</html>
