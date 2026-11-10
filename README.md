@@ -1,22 +1,22 @@
-# 🔍 Ergonomic Reviewer — Skill & Outils d'Audit Ergonomique Expert
+# Ergonomic Reviewer — Skill & Outils d'Audit Ergonomique Expert
 > **Référentiel unifié : Bastien & Scapin (INRIA 1993) × Jakob Nielsen (NN/g 1994)**  
 > Détection automatisée des problématiques IHM, calcul du score **SEGA** sur 100 et génération de **spécifications UX/UI prescriptives** avec micro-copie et code diff.
 
 ---
 
-## 📑 Sommaire
-- [Architecture du projet](#-architecture-du-projet)
-- [Comment tester ? (Guide pas-à-pas)](#-comment-tester--guide-pas-à-pas)
+## Sommaire
+- [Architecture du projet](#architecture-du-projet)
+- [Comment tester ? (Guide pas-à-pas)](#comment-tester--guide-pas-à-pas)
   - [Prérequis](#1-prérequis)
   - [Test 1 : Audit statique de code source (Rapide)](#test-1--audit-statique-de-code-source-rapide)
   - [Test 2 : Audit live Playwright (DOM, WCAG, Mobile)](#test-2--audit-live-playwright-dom-wcag-mobile)
   - [Test 3 : Tester le Skill Antigravity dans le chat](#test-3--tester-le-skill-antigravity-dans-le-chat)
-- [Comprendre les résultats d'audit](#-comprendre-les-résultats-daudit)
-- [Référentiels & Documentation](#-référentiels--documentation)
+- [Comprendre les résultats d'audit](#comprendre-les-résultats-daudit)
+- [Référentiels & Documentation](#référentiels--documentation)
 
 ---
 
-## 📂 Architecture du Projet
+## Architecture du Projet
 
 ```text
 ├── SKILL.md                          # Définition du Skill Antigravity (Ergonome IHM Senior)
@@ -53,7 +53,7 @@
 
 ---
 
-## 🧪 Comment tester ? (Guide pas-à-pas)
+## Comment tester ? (Guide pas-à-pas)
 
 ### 1. Prérequis
 
@@ -181,14 +181,14 @@ Le skill `ergonomic-review` peut être sollicité directement par conversation a
 
 ---
 
-## 📊 Comprendre les résultats d'audit
+## Comprendre les résultats d'audit
 
 Chaque audit produit :
 1. **Le score SEGA (0 à 100) :**
-   - 🟢 `85 - 100` : Excellent niveau d'utilisabilité.
-   - 🟡 `70 - 84` : Bon niveau avec frictions localisées.
-   - 🟠 `50 - 69` : Frictions ergonomiques notables.
-   - 🔴 `< 50` : Risque élevé de rejet ou abandon utilisateur.
+   - `85 - 100` : Excellent niveau d'utilisabilité.
+   - `70 - 84` : Bon niveau avec frictions localisées.
+   - `50 - 69` : Frictions ergonomiques notables.
+   - `< 50` : Risque élevé de rejet ou abandon utilisateur.
 2. **La matrice Sévérité / Effort :**
    - **Sévérité (0 à 4) :** Cosmétique (1), Mineur (2), Majeur (3), Catastrophe (4).
    - **Quick-Wins :** Fort impact (sévérité 2 ou 3) pour un effort de correction faible (< 0.5 jour).
@@ -200,7 +200,7 @@ Chaque audit produit :
 
 ---
 
-## 📚 Référentiels & Documentation
+## Référentiels & Documentation
 
 - [AGENTS.md](AGENTS.md) : Directives d'ingénierie, gestion Git, isolation par Worktrees et conventions de commits.
 - [SPECIFICATIONS.md](SPECIFICATIONS.md) : Cahier des charges exhaustif.
