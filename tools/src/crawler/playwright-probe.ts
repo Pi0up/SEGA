@@ -2,9 +2,10 @@ import { chromium } from 'playwright';
 import AxeBuilder from '@axe-core/playwright';
 import * as path from 'path';
 import * as fs from 'fs';
-import { Finding, WcagReportData, AuditScreenshotData } from '../types';
+import { Finding, WcagReportData, AuditScreenshotData, AiConfig, AiAnalysisResult } from '../types';
 import { runWcagAnalysis } from '../wcag';
 import { annotateAndCaptureScreenshots } from '../visual';
+import { runAiErgonomicAnalysis } from '../ai';
 
 export interface ProbeOptions {
   url: string;
@@ -13,12 +14,14 @@ export interface ProbeOptions {
     enabled: boolean;
     standard?: string;
   };
+  ai?: AiConfig;
 }
 
 export interface ProbeResult {
   findings: Finding[];
   screenshots: AuditScreenshotData;
   wcag?: WcagReportData;
+  aiAnalysis?: AiAnalysisResult;
 }
 
 export async function runPlaywrightProbe(options: ProbeOptions): Promise<ProbeResult> {
@@ -39,6 +42,9 @@ export async function runPlaywrightProbe(options: ProbeOptions): Promise<ProbeRe
 
   const desktopScreenshot = path.join(screenshotsDir, 'screenshot-desktop.png');
   const mobileScreenshot = path.join(screenshotsDir, 'screenshot-mobile.png');
+  let pageTitle: string | undefined;
+  let domSummary: any;
+  let aiAnalysisResult: AiAnalysisResult | undefined;
 
   try {
     // 1. Desktop inspection (1440x900)
@@ -59,6 +65,31 @@ export async function runPlaywrightProbe(options: ProbeOptions): Promise<ProbeRe
     await page.waitForLoadState('load', { timeout: 15000 }).catch(() => {});
     await page.waitForTimeout(2000); // Laisser le temps aux rendus dynamiques et polices
     await page.screenshot({ path: desktopScreenshot, fullPage: false });
+
+    pageTitle = await page.title().catch(() => undefined);
+    domSummary = await page
+      .evaluate(() => {
+        const headings = Array.from(document.querySelectorAll('h1, h2, h3'))
+          .map((el) => (el.textContent || '').trim())
+          .filter(Boolean);
+        const buttonsCount = document.querySelectorAll('button, [role="button"]').length;
+        const linksCount = document.querySelectorAll('a[href]').length;
+        const formsCount = document.querySelectorAll('form').length;
+        const inputsCount = document.querySelectorAll('input, select, textarea').length;
+        const paragraphs = Array.from(document.querySelectorAll('p, span'))
+          .map((el) => (el.textContent || '').trim())
+          .filter((t) => t.length > 20 && t.length < 150)
+          .slice(0, 8);
+        return {
+          headings,
+          buttonsCount,
+          linksCount,
+          formsCount,
+          inputsCount,
+          keyTexts: paragraphs
+        };
+      })
+      .catch(() => undefined);
 
     // Console errors finding (Axe 5 : Gestion des erreurs)
     if (consoleErrors.length > 0) {
@@ -255,6 +286,32 @@ export async function runPlaywrightProbe(options: ProbeOptions): Promise<ProbeRe
     }
 
     await mobileContext.close();
+
+    // 5. Analyse Qualitative & Cognitive par IA (Multimodale)
+    if (options.ai?.enabled) {
+      try {
+        const knownIssues = findings.map((f) => `[${f.axis}] ${f.title} (${f.observation})`);
+        aiAnalysisResult = await runAiErgonomicAnalysis({
+          config: options.ai,
+          request: {
+            url: options.url,
+            pageTitle,
+            desktopScreenshotPath: desktopScreenshot,
+            mobileScreenshotPath: mobileScreenshot,
+            domSummary,
+            scriptFindingsCount: findings.length,
+            knownIssuesSummary: knownIssues
+          },
+          nextFindingId: nextId
+        });
+
+        if (aiAnalysisResult && aiAnalysisResult.findings.length > 0) {
+          findings.push(...aiAnalysisResult.findings);
+        }
+      } catch (aiErr) {
+        console.warn(`[Ergo-Review] Erreur non bloquante lors de l'analyse IA :`, aiErr);
+      }
+    }
   } finally {
     await browser.close();
   }
@@ -267,6 +324,7 @@ export async function runPlaywrightProbe(options: ProbeOptions): Promise<ProbeRe
       desktopAnnotated,
       annotatedSnippets: desktopSnippets
     },
-    wcag: wcagReport
+    wcag: wcagReport,
+    aiAnalysis: aiAnalysisResult
   };
 }
