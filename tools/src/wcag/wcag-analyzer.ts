@@ -355,7 +355,8 @@ export async function runWcagAnalysis(page: Page, options: WcagAnalyzerOptions =
       expectedBehavior: `Rendre l'élément pleinement accessible conformément à ${standard} (${v.helpUrl}).`,
       codeSnippetBefore: diff.before,
       codeSnippetAfter: diff.after,
-      wcagCriterion: primaryWcagTag
+      wcagCriterion: primaryWcagTag,
+      selector: violationNodes[0]?.target
     });
   }
 

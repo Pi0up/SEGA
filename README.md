@@ -39,6 +39,8 @@
         ├── types.ts                  # Définitions de types, 8 axes et score SEGA
         ├── crawler/
         │   └── playwright-probe.ts   # Sonde Playwright (DOM, axe-core, captures, console)
+        ├── visual/
+        │   └── annotator.ts          # Moteur d'annotation d'écran & marqueurs visuels in-situ
         ├── code/
         │   └── static-analyzer.ts    # Scanner statique de composants (JSX/TSX/HTML)
         └── reporter/
@@ -113,10 +115,11 @@ npm run audit -- --url http://localhost:3000 --wcag 2.2AA
 
 **Ce que vous allez observer :**
 - Captures d'écran automatiques dans `.audit-results/screenshots/` (Desktop 1440px et Mobile 375px).
+- **Marqueurs visuels in-situ & Cartographie :** La sonde génère une capture annotée globale (`screenshot-desktop-annotated.png`) avec des cadres et pilules de repérage numérotées, ainsi que des extraits ciblés (`marker-SPEC-XX.png`) pour chaque anomalie.
 - Audit axe-core et module WCAG (conformité par principe : Perceptible, Utilisable, Compréhensible, Robuste).
-- Taux de conformité WCAG calculé (ex: 82% conforme).
+- Taux de conformité WCAG calculé (ex: 80% conforme).
 - Détection des débordements horizontaux sur mobile.
-- Génération du rapport `.audit-results/AUDIT_REPORT.md` (avec section dédiée WCAG) et `.audit-results/WCAG_REPORT.json`.
+- Génération du rapport `.audit-results/AUDIT_REPORT.md` (intégrant la cartographie visuelle et les aperçus annotés par fiche) et `.audit-results/WCAG_REPORT.json`.
 
 ---
 

@@ -10,18 +10,28 @@
     "build": "tsc",
     "start": "node dist/index.js",
     "audit": "node dist/index.js audit",
-    "audit:code": "node dist/index.js code"
+    "audit:code": "node dist/index.js code",
+    "test": "npm run build && node dist/index.js code -p ../examples/demo-app/BadCheckoutForm.tsx"
   },
-  "keywords": ["ux", "ergonomics", "bastien-scapin", "nielsen", "playwright", "audit"],
+  "keywords": [
+    "ux",
+    "ergonomics",
+    "bastien-scapin",
+    "nielsen",
+    "playwright",
+    "audit"
+  ],
   "author": "Antigravity UX Team",
   "license": "MIT",
   "dependencies": {
     "@axe-core/playwright": "^4.10.1",
     "chalk": "^4.1.2",
     "commander": "^12.1.0",
+    "dotenv": "^18.0.10",
     "playwright": "^1.49.1"
   },
   "devDependencies": {
+    "@types/dotenv": "^6.1.1",
     "@types/node": "^20.14.0",
     "typescript": "^5.4.5"
   }

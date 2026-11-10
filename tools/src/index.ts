@@ -71,6 +71,11 @@ program
           `[Ergo-Review] ♿ Taux de conformité ${probeResult.wcag.standard} : ${probeResult.wcag.complianceRate}% (${probeResult.wcag.violationsCount} violation(s))`
         );
       }
+      if (probeResult.screenshots.desktopAnnotated) {
+        console.log(
+          `[Ergo-Review] 📸 Marqueurs visuels : ${probeResult.screenshots.annotatedSnippets?.length || 0} snippet(s) et cartographie générés dans ${outputDir}/screenshots`
+        );
+      }
       console.log(`[Ergo-Review] Problèmes détectés : ${probeResult.findings.length} (dont ${metrics.quickWins} Quick-Wins)`);
       console.log(`[Ergo-Review] Rapport généré : ${reportPath}`);
     } catch (err) {

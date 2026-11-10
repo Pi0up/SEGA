@@ -1,3 +1,4 @@
+import * as path from 'path';
 import { AuditReportData, Finding, UNIFIED_AXES } from '../types';
 
 export function calculateSegaScore(findings: Finding[]): {
@@ -68,6 +69,35 @@ export function buildMarkdownReport(data: AuditReportData): string {
   lines.push(`| **Quick-Wins Identifiés** | **${data.metrics.quickWins}** | ⚡ Gain immédiat à faible effort |`);
   lines.push(``);
 
+  // Cartographie visuelle des marqueurs
+  if (data.screenshots?.desktopAnnotated) {
+    const annotatedFilename = path.basename(data.screenshots.desktopAnnotated);
+    lines.push(`### 📸 Cartographie Visuelle des Anomalies Détectées`);
+    lines.push(``);
+    lines.push(
+      `La capture d'écran ci-dessous localise précisément sur l'interface les anomalies ergonomiques et d'accessibilité détectées. Chaque défaut est repéré par un cadre de délimitation et une balise numérotée selon son niveau de gravité :`
+    );
+    lines.push(``);
+    lines.push(`![Cartographie visuelle des anomalies](screenshots/${annotatedFilename})`);
+    lines.push(``);
+
+    const markedFindings = data.findings.filter((f) => f.visualMarker);
+    if (markedFindings.length > 0) {
+      lines.push(`| N° Marqueur | Réf. Fiche | Sévérité | Problème Détecté | Localisation DOM |`);
+      lines.push(`| :---: | :--- | :---: | :--- | :--- |`);
+
+      for (const f of markedFindings) {
+        const marker = f.visualMarker!;
+        const badgeEmoji = getSeverityEmoji(f.severity);
+        const refAnchor = `#${f.id.toLowerCase()}`;
+        lines.push(
+          `| ${badgeEmoji} **#${marker.markerNumber}** | [**${f.id}**](${refAnchor}) | ${getSeverityLabel(f.severity)} | ${f.title} | \`${f.location}\` |`
+        );
+      }
+      lines.push(``);
+    }
+  }
+
   // Section 2 : Répartition par Méta-Axe
   lines.push(`## 2. Répartition par Méta-Axe Ergonomique`);
   lines.push(``);
@@ -129,6 +159,15 @@ export function buildMarkdownReport(data: AuditReportData): string {
       lines.push(`\`\`\``);
     }
 
+    if (f.visualMarker?.screenshotPath) {
+      const snippetFilename = path.basename(f.visualMarker.screenshotPath);
+      lines.push(``);
+      lines.push(`#### 📸 Diagnostic Visuel & Marqueur In-Situ`);
+      lines.push(``);
+      lines.push(`![Marqueur visuel ${f.id}](screenshots/${snippetFilename})`);
+      lines.push(`> 📍 **Marqueur visuel #${f.visualMarker.markerNumber}** positionné sur l'élément en anomalie (\`${f.location}\`).`);
+    }
+
     lines.push(`\n---\n`);
   }
 
@@ -181,7 +220,48 @@ export function buildMarkdownReport(data: AuditReportData): string {
     }
   }
 
+  // Section 5 : Annexes & Captures d'Écran
+  if (data.screenshots?.desktop || data.screenshots?.mobile || data.screenshots?.desktopAnnotated) {
+    lines.push(`## 5. Annexes & Captures d'Écran`);
+    lines.push(``);
+    lines.push(
+      `Pour archivage ou revue complémentaire, les captures d'écran générées lors de la session d'audit sont consultables ci-dessous :`
+    );
+    lines.push(``);
+    if (data.screenshots.desktop) {
+      lines.push(
+        `- 🖥️ **Capture Desktop originale (1440×900) :** [\`screenshots/${path.basename(data.screenshots.desktop)}\`](screenshots/${path.basename(data.screenshots.desktop)})`
+      );
+    }
+    if (data.screenshots.mobile) {
+      lines.push(
+        `- 📱 **Capture Mobile originale (375×812) :** [\`screenshots/${path.basename(data.screenshots.mobile)}\`](screenshots/${path.basename(data.screenshots.mobile)})`
+      );
+    }
+    if (data.screenshots.desktopAnnotated) {
+      lines.push(
+        `- 🎯 **Capture Desktop avec Marqueurs Visuels :** [\`screenshots/${path.basename(data.screenshots.desktopAnnotated)}\`](screenshots/${path.basename(data.screenshots.desktopAnnotated)})`
+      );
+    }
+    lines.push(``);
+  }
+
   return lines.join('\n');
+}
+
+function getSeverityEmoji(severity: number): string {
+  switch (severity) {
+    case 4:
+      return '🔴';
+    case 3:
+      return '🟠';
+    case 2:
+      return '🟡';
+    case 1:
+      return '🔵';
+    default:
+      return '⚪';
+  }
 }
 
 function getImpactBadge(impact: string): string {
