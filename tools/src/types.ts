@@ -96,6 +96,9 @@ export interface Finding {
   codeSnippetBefore?: string;
   codeSnippetAfter?: string;
   wcagCriterion?: string;
+  pageUrl?: string;
+  pageTitle?: string;
+  affectedPages?: string[];
 }
 
 export type WcagPrinciple = 'Perceptible' | 'Utilisable' | 'Compréhensible' | 'Robuste';
