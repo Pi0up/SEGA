@@ -37,8 +37,10 @@ flowchart LR
 
 ### Phase 1 : Collecte & Ingestion
 - **Si une URL en direct est fournie :**
-  - Exécuter la sonde automatisée Playwright (`npm run audit -- --url <URL>`).
-  - Examiner la capture Desktop (1440px), Mobile (375px), les contrastes WCAG, les erreurs console et le rapport a11y.
+  - **Audit mono-page standard :** `node dist/index.js audit -u <URL>`
+  - **Audit exploratoire multi-pages :** `node dist/index.js audit -u <URL> --crawl --max-pages 5 --max-depth 2`
+  - **Audit avec conformité WCAG :** `node dist/index.js audit -u <URL> -c -w 2.1AA`
+  - La sonde explore intelligemment les liens internes (`same-origin`), capture les écrans Desktop (1440px) et Mobile (375px) pour chaque page, vérifie les contrastes, la hiérarchie des titres, les erreurs console et les débordements horizontaux.
 - **Si du code source est fourni :**
   - Analyser les composants (formulaires, modales, boutons, navigation, états de chargement).
   - Rechercher les anti-patterns d'accessibilité et de feedback.
