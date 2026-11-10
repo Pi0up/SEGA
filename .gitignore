@@ -16,4 +16,6 @@ screenshots/
 Thumbs.db
 .vscode/
 .idea/
+
+# Git Worktrees (isolation multi-agents / multi-conversations)
 .worktrees/

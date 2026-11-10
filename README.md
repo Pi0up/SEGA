@@ -157,6 +157,7 @@ Chaque audit produit :
 
 ## 📚 Référentiels & Documentation
 
+- [AGENTS.md](AGENTS.md) : Directives d'ingénierie, gestion Git, isolation par Worktrees et conventions de commits.
 - [SPECIFICATIONS.md](SPECIFICATIONS.md) : Cahier des charges exhaustif.
 - [references/unified-matrix.md](references/unified-matrix.md) : Grille détaillée des 8 méta-axes unifiés.
 - [references/spec-template.md](references/spec-template.md) : Gabarit d'une fiche de spécification type.
