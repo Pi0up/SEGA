@@ -95,6 +95,50 @@ export interface Finding {
   microCopyAfter?: string;
   codeSnippetBefore?: string;
   codeSnippetAfter?: string;
+  wcagCriterion?: string;
+}
+
+export type WcagPrinciple = 'Perceptible' | 'Utilisable' | 'Compréhensible' | 'Robuste';
+
+export interface WcagViolationNode {
+  target: string;
+  html: string;
+  failureSummary?: string;
+}
+
+export interface WcagViolation {
+  id: string;
+  impact: 'critical' | 'serious' | 'moderate' | 'minor';
+  wcagCriteria: string[];
+  wcagPrinciple: WcagPrinciple;
+  description: string;
+  help: string;
+  helpUrl: string;
+  nodesCount: number;
+  nodes: WcagViolationNode[];
+}
+
+export interface WcagReportData {
+  enabled: boolean;
+  standard: string;
+  testedRulesCount: number;
+  passesCount: number;
+  violationsCount: number;
+  incompleteCount: number;
+  complianceRate: number;
+  violations: WcagViolation[];
+  byPrinciple: {
+    perceivable: number;
+    operable: number;
+    understandable: number;
+    robust: number;
+  };
+  byImpact: {
+    critical: number;
+    serious: number;
+    moderate: number;
+    minor: number;
+  };
 }
 
 export interface AuditReportData {
@@ -114,4 +158,5 @@ export interface AuditReportData {
     cosmetics: number;
     quickWins: number;
   };
+  wcag?: WcagReportData;
 }
