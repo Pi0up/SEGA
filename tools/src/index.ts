@@ -1,10 +1,14 @@
 import { Command } from 'commander';
 import * as path from 'path';
 import * as fs from 'fs';
+import * as dotenv from 'dotenv';
 import { runPlaywrightProbe } from './crawler/playwright-probe';
 import { runStaticCodeAnalysis } from './code/static-analyzer';
 import { calculateSegaScore, buildMarkdownReport } from './reporter/markdown-builder';
-import { AuditReportData, Finding } from './types';
+import { AuditReportData, Finding, AiProvider } from './types';
+
+// Chargement automatique des variables d'environnement (.env)
+dotenv.config();
 
 const program = new Command();
 
@@ -19,13 +23,21 @@ program
   .requiredOption('-u, --url <url>', 'URL de la page ou application à auditer')
   .option('-o, --output <dir>', 'Répertoire de sortie des rapports', '.audit-results')
   .option('-w, --wcag [standard]', 'Activer le module de vérification WCAG (ex: 2.1AA, 2.2AA, 2.0AA, AAA)', false)
+  .option('-a, --ai', 'Activer l analyse ergonomique qualitative par IA (regard humain)', false)
+  .option('--ai-provider <provider>', 'Fournisseur d IA pour l analyse (gemini, openai, anthropic)', 'gemini')
+  .option('--ai-model <model>', 'Modèle d IA spécifique à utiliser')
   .action(async (options) => {
     const isWcagEnabled = options.wcag !== false && options.wcag !== undefined;
     const wcagStandard = typeof options.wcag === 'string' ? options.wcag : '2.1AA';
+    const isAiEnabled = Boolean(options.ai);
+    const aiProvider = (options.aiProvider as AiProvider) || 'gemini';
 
     console.log(`[Ergo-Review] Démarrage de l'audit Playwright sur : ${options.url}`);
     if (isWcagEnabled) {
       console.log(`[Ergo-Review] ♿ Module WCAG activé avec le standard : ${wcagStandard}`);
+    }
+    if (isAiEnabled) {
+      console.log(`[Ergo-Review] 🧠 Analyse qualitative IA activée (Provider: ${aiProvider.toUpperCase()})`);
     }
     const outputDir = path.resolve(process.cwd(), options.output);
     
@@ -38,6 +50,13 @@ program
               enabled: true,
               standard: wcagStandard
             }
+          : undefined,
+        ai: isAiEnabled
+          ? {
+              enabled: true,
+              provider: aiProvider,
+              model: options.aiModel
+            }
           : undefined
       });
 
@@ -46,13 +65,16 @@ program
         target: options.url,
         date: new Date().toISOString().split('T')[0],
         segaScore: metrics.score,
+        segaScoreTechnical: metrics.technicalScore,
+        segaScoreGlobal: metrics.globalScore,
         findings: probeResult.findings,
         screenshots: probeResult.screenshots,
         metrics: {
           totalFindings: probeResult.findings.length,
           ...metrics
         },
-        wcag: probeResult.wcag
+        wcag: probeResult.wcag,
+        aiAnalysis: probeResult.aiAnalysis
       };
 
       const markdown = buildMarkdownReport(reportData);
@@ -64,8 +86,18 @@ program
         fs.writeFileSync(wcagJsonPath, JSON.stringify(probeResult.wcag, null, 2), 'utf-8');
       }
 
+      if (probeResult.aiAnalysis) {
+        const aiJsonPath = path.join(outputDir, 'AI_ANALYSIS.json');
+        fs.writeFileSync(aiJsonPath, JSON.stringify(probeResult.aiAnalysis, null, 2), 'utf-8');
+      }
+
       console.log(`[Ergo-Review] ✅ Audit terminé !`);
-      console.log(`[Ergo-Review] Score SEGA : ${metrics.score}/100`);
+      if (probeResult.aiAnalysis) {
+        console.log(`[Ergo-Review] Score SEGA Global : ${metrics.globalScore}/100 | Score Technique : ${metrics.technicalScore}/100`);
+        console.log(`[Ergo-Review] 🧠 Constats qualitatifs IA : ${probeResult.aiAnalysis.findings.length} (${probeResult.aiAnalysis.provider.toUpperCase()} / ${probeResult.aiAnalysis.model})`);
+      } else {
+        console.log(`[Ergo-Review] Score SEGA : ${metrics.score}/100`);
+      }
       if (probeResult.wcag) {
         console.log(
           `[Ergo-Review] ♿ Taux de conformité ${probeResult.wcag.standard} : ${probeResult.wcag.complianceRate}% (${probeResult.wcag.violationsCount} violation(s))`

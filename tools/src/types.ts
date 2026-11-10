@@ -94,8 +94,11 @@ export interface VisualMarker {
   fullScreenshotPath?: string;
 }
 
+export type FindingSource = 'script' | 'ai' | 'wcag' | 'static';
+
 export interface Finding {
   id: string;
+  source?: FindingSource;
   axis: UnifiedAxisId;
   bastienScapinRule: string;
   nielsenRule: string;
@@ -116,6 +119,31 @@ export interface Finding {
   affectedPages?: string[];
   selector?: string;
   visualMarker?: VisualMarker;
+}
+
+export type AiProvider = 'gemini' | 'openai' | 'anthropic';
+
+export interface AiConfig {
+  enabled: boolean;
+  provider: AiProvider;
+  model?: string;
+  apiKey?: string;
+}
+
+export interface AiQualitativeSummary {
+  cognitiveLoadEvaluation: string;
+  toneAndMicrocopyEvaluation: string;
+  navigationAndMentalModelsEvaluation: string;
+  aestheticAndVisualHarmony: string;
+  generalVerdict: string;
+  strengths: string[];
+}
+
+export interface AiAnalysisResult {
+  provider: AiProvider;
+  model: string;
+  narrativeSummary: AiQualitativeSummary;
+  findings: Finding[];
 }
 
 export type WcagPrinciple = 'Perceptible' | 'Utilisable' | 'Compréhensible' | 'Robuste';
@@ -178,6 +206,8 @@ export interface AuditReportData {
   target: string;
   date: string;
   segaScore: number;
+  segaScoreTechnical?: number;
+  segaScoreGlobal?: number;
   findings: Finding[];
   screenshots?: AuditScreenshotData;
   metrics: {
@@ -187,6 +217,9 @@ export interface AuditReportData {
     minors: number;
     cosmetics: number;
     quickWins: number;
+    technicalScore?: number;
+    globalScore?: number;
   };
   wcag?: WcagReportData;
+  aiAnalysis?: AiAnalysisResult;
 }

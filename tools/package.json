@@ -15,7 +15,7 @@
     "start": "node dist/index.js",
     "audit": "node dist/index.js audit",
     "audit:code": "node dist/index.js code",
-    "test": "npm run build && node dist/index.js code -p ../examples/demo-app/BadCheckoutForm.tsx"
+    "test": "npm run build && node dist/index.js code -p ../examples/demo-app/BadCheckoutForm.tsx && node dist/__tests__/ai.test.js"
   },
   "keywords": [
     "ux",

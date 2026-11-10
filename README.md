@@ -41,6 +41,10 @@
         │   └── playwright-probe.ts   # Sonde Playwright (DOM, axe-core, captures, console)
         ├── visual/
         │   └── annotator.ts          # Moteur d'annotation d'écran & marqueurs visuels in-situ
+        ├── ai/                       # Module d'analyse ergonomique qualitative humaine par IA
+        │   ├── prompts.ts            # Méta-prompts ergonomiques Bastien & Scapin × Nielsen
+        │   ├── providers/            # Connecteurs multimodaux (Gemini, OpenAI, Anthropic)
+        │   └── ai-analyzer.ts        # Orchestrateur d'analyse vision-langage & dégradation gracieuse
         ├── code/
         │   └── static-analyzer.ts    # Scanner statique de composants (JSX/TSX/HTML)
         └── reporter/
@@ -131,13 +135,33 @@ npm run audit -- --url http://localhost:3000 --wcag
 npm run audit -- --url http://localhost:3000 --wcag 2.2AA
 ```
 
+#### Option D : Activer l'analyse ergonomique qualitative humaine par IA (--ai)
+Activez l'analyse multimodale vision-langage pour évaluer ce que les scripts ne peuvent pas mesurer (charge cognitive, tonalité, clarté du flux, affordance) :
+```bash
+# Analyse IA avec Google Gemini (défaut) via GEMINI_API_KEY
+npm run audit -- --url http://localhost:3000 --ai
+
+# Analyse IA avec OpenAI (gpt-4o) via OPENAI_API_KEY
+npm run audit -- --url http://localhost:3000 --ai --ai-provider openai
+
+# Analyse IA avec Anthropic (claude-3-5-sonnet) via ANTHROPIC_API_KEY
+npm run audit -- --url http://localhost:3000 --ai --ai-provider anthropic
+
+# Personnaliser le modèle utilisé
+npm run audit -- --url http://localhost:3000 --ai --ai-provider gemini --ai-model gemini-2.5-flash
+```
+
+> **Configuration des clés d'API :** Renseignez vos clés dans un fichier `.env` à la racine de `tools/` ou dans votre environnement : `GEMINI_API_KEY`, `OPENAI_API_KEY`, `ANTHROPIC_API_KEY`. En cas de clé absente ou d'erreur réseau, le système applique une **dégradation gracieuse** : l'audit se poursuit sans bloquer avec les résultats scriptés.
+
 **Ce que vous allez observer :**
 - Captures d'écran automatiques dans `.audit-results/screenshots/` (Desktop 1440px et Mobile 375px).
 - **Marqueurs visuels in-situ & Cartographie :** La sonde génère une capture annotée globale (`screenshot-desktop-annotated.png`) avec des cadres et pilules de repérage numérotées, ainsi que des extraits ciblés (`marker-SPEC-XX.png`) pour chaque anomalie.
+- **Analyse IA Qualitative & Psychologie Cognitive :** Section dédiée dans le rapport Markdown avec évaluation de la charge mentale, de la micro-copie, de l'affordance et de l'harmonie visuelle, ainsi que le verdict global de l'ergonome IA.
+- **Double lecture du score SEGA :** Affichage conjoint du *Score SEGA Global* (Technique + IA) et du *Score SEGA Technique* (règles scriptées).
 - Audit axe-core et module WCAG (conformité par principe : Perceptible, Utilisable, Compréhensible, Robuste).
 - Taux de conformité WCAG calculé (ex: 80% conforme).
 - Détection des débordements horizontaux sur mobile.
-- Génération du rapport `.audit-results/AUDIT_REPORT.md` (intégrant la cartographie visuelle et les aperçus annotés par fiche) et `.audit-results/WCAG_REPORT.json`.
+- Génération du rapport `.audit-results/AUDIT_REPORT.md` (intégrant la cartographie visuelle, l'analyse cognitive IA et les aperçus annotés par fiche) et `.audit-results/AI_ANALYSIS.json`.
 
 ---
 
