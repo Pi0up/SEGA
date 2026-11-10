@@ -1,6 +1,6 @@
 {
   "name": "ergonomic-review-tools",
-  "version": "1.2.0",
+  "version": "1.3.0",
   "description": "Outils d'audit ergonomique automatisé (Playwright + Analyseur statique) pour le skill Ergonomic Reviewer",
   "main": "dist/index.js",
   "bin": {
@@ -9,13 +9,12 @@
   "scripts": {
     "build": "tsc",
     "typecheck": "tsc --noEmit",
-    "test": "vitest run",
+    "test": "npm run build && node dist/index.js code -p ../examples/demo-app/BadCheckoutForm.tsx && node dist/__tests__/ai.test.js",
     "test:watch": "vitest",
     "check": "npm run typecheck && npm run test && npm run build",
     "start": "node dist/index.js",
     "audit": "node dist/index.js audit",
-    "audit:code": "node dist/index.js code",
-    "test": "npm run build && node dist/index.js code -p ../examples/demo-app/BadCheckoutForm.tsx && node dist/__tests__/ai.test.js"
+    "audit:code": "node dist/index.js code"
   },
   "keywords": [
     "ux",

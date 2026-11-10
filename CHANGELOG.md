@@ -2,6 +2,20 @@
 
 Toutes les modifications notables apportées au projet SEGA / Ergonomic Reviewer sont consignées dans ce fichier.
 
+## [1.3.0](https://github.com/Pi0up/SEGA/compare/v1.2.0...v1.3.0) (2026-11-10)
+
+### ✨ Features
+
+* **ai:** implement multimodal AI qualitative human analysis module ([cb3b77f](https://github.com/Pi0up/SEGA/commit/cb3b77f2f8147421145a5cebbebdecddf113b83e))
+* **crawler:** implement link extractor and exploratory crawl engine ([2b2ee16](https://github.com/Pi0up/SEGA/commit/2b2ee16eb52acdcc58902e6645725cb2a79a5744))
+* **crawler:** integrate wcag accessibility analyzer and reporting ([8172408](https://github.com/Pi0up/SEGA/commit/81724082d8c1925b26bd251dbff7422e6b137139))
+* **reporter:** add multi-page exploration mapping and reporting ([d25664a](https://github.com/Pi0up/SEGA/commit/d25664a65b043316384900282df9d251cf6fbc14))
+* **visual:** add in-situ visual markers and screenshot annotations for audit findings ([bb9be90](https://github.com/Pi0up/SEGA/commit/bb9be903d1f96dbabcb8bb5370d858cde4362b83))
+
+### 🐛 Bug Fixes
+
+* **ci:** synchronize root package-lock with workspace dependencies ([1ecee71](https://github.com/Pi0up/SEGA/commit/1ecee71819ecd29faae2075a51d2666d2e54b124))
+
 ## [1.2.0](https://github.com/Pi0up/SEGA/compare/v1.1.0...v1.2.0) (2026-11-10)
 
 ### ✨ Features
