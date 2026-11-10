@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <title>Catalogue Produits - Démonstration</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 20px;
+    }
+    .tiny-btn {
+      display: inline-block;
+      width: 16px;
+      height: 16px;
+      font-size: 10px;
+      line-height: 16px;
+      text-align: center;
+      background: #ccc;
+      color: #333;
+      text-decoration: none;
+      border-radius: 2px;
+    }
+    .card {
+      border: 1px solid #ddd;
+      padding: 15px;
+      margin-bottom: 15px;
+      border-radius: 6px;
+    }
+  </style>
+</head>
+<body>
+  <nav aria-label="Navigation principale">
+    <ul>
+      <li><a href="index.html">Accueil</a></li>
+      <li><a href="products.html">Nos Produits</a></li>
+      <li><a href="contact.html">Support & Contact</a></li>
+    </ul>
+  </nav>
+
+  <!-- Titres H1 multiples et saut de niveau vers H3 (Axe 1 & 6) -->
+  <h1>Catalogue Produits</h1>
+  <h1>Nos Offres Exceptionnelles</h1>
+
+  <div class="card">
+    <h3>Produit A (Saut de titre sans h2)</h3>
+    <p>Description détaillée du produit.</p>
+    <!-- Cible tactile trop petite (Axe 4) -->
+    <a href="#" class="tiny-btn" aria-label="Ajouter au panier">+</a>
+  </div>
+
+  <div class="card">
+    <h3>Produit B</h3>
+    <p>Description détaillée du produit.</p>
+    <a href="#" class="tiny-btn" aria-label="Ajouter au panier">+</a>
+  </div>
+</body>
+</html>
