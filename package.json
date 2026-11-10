@@ -8,7 +8,12 @@
   ],
   "scripts": {
     "build": "npm --workspace=tools run build",
-    "test": "npm run build && node tools/dist/index.js code -p examples/demo-app/BadCheckoutForm.tsx",
+    "typecheck": "npm --workspace=tools run typecheck",
+    "test:unit": "npm --workspace=tools run test",
+    "test:fixture": "node tools/dist/index.js code -p examples/demo-app/BadCheckoutForm.tsx",
+    "test": "npm run typecheck && npm run test:unit && npm run build && npm run test:fixture",
+    "check": "npm run test",
+    "prepack": "npm run check",
     "audit:code": "npm --workspace=tools run audit:code",
     "audit": "npm --workspace=tools run audit",
     "release": "semantic-release"
