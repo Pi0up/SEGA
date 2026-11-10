@@ -1,22 +1,22 @@
-# 🔍 Ergonomic Reviewer — Skill & Outils d'Audit Ergonomique Expert
+# Ergonomic Reviewer — Skill & Outils d'Audit Ergonomique Expert
 > **Référentiel unifié : Bastien & Scapin (INRIA 1993) × Jakob Nielsen (NN/g 1994)**  
 > Détection automatisée des problématiques IHM, calcul du score **SEGA** sur 100 et génération de **spécifications UX/UI prescriptives** avec micro-copie et code diff.
 
 ---
 
-## 📑 Sommaire
-- [Architecture du projet](#-architecture-du-projet)
-- [Comment tester ? (Guide pas-à-pas)](#-comment-tester--guide-pas-à-pas)
+## Sommaire
+- [Architecture du projet](#architecture-du-projet)
+- [Comment tester ? (Guide pas-à-pas)](#comment-tester--guide-pas-à-pas)
   - [Prérequis](#1-prérequis)
   - [Test 1 : Audit statique de code source (Rapide)](#test-1--audit-statique-de-code-source-rapide)
   - [Test 2 : Audit live Playwright (DOM, WCAG, Mobile)](#test-2--audit-live-playwright-dom-wcag-mobile)
   - [Test 3 : Tester le Skill Antigravity dans le chat](#test-3--tester-le-skill-antigravity-dans-le-chat)
-- [Comprendre les résultats d'audit](#-comprendre-les-résultats-daudit)
-- [Référentiels & Documentation](#-référentiels--documentation)
+- [Comprendre les résultats d'audit](#comprendre-les-résultats-daudit)
+- [Référentiels & Documentation](#référentiels--documentation)
 
 ---
 
-## 📂 Architecture du Projet
+## Architecture du Projet
 
 ```text
 ├── SKILL.md                          # Définition du Skill Antigravity (Ergonome IHM Senior)
@@ -39,6 +39,12 @@
         ├── types.ts                  # Définitions de types, 8 axes et score SEGA
         ├── crawler/
         │   └── playwright-probe.ts   # Sonde Playwright (DOM, axe-core, captures, console)
+        ├── visual/
+        │   └── annotator.ts          # Moteur d'annotation d'écran & marqueurs visuels in-situ
+        ├── ai/                       # Module d'analyse ergonomique qualitative humaine par IA
+        │   ├── prompts.ts            # Méta-prompts ergonomiques Bastien & Scapin × Nielsen
+        │   ├── providers/            # Connecteurs multimodaux (Gemini, OpenAI, Anthropic)
+        │   └── ai-analyzer.ts        # Orchestrateur d'analyse vision-langage & dégradation gracieuse
         ├── code/
         │   └── static-analyzer.ts    # Scanner statique de composants (JSX/TSX/HTML)
         └── reporter/
@@ -47,7 +53,7 @@
 
 ---
 
-## 🧪 Comment tester ? (Guide pas-à-pas)
+## Comment tester ? (Guide pas-à-pas)
 
 ### 1. Prérequis
 
@@ -129,12 +135,33 @@ npm run audit -- --url http://localhost:3000 --wcag
 npm run audit -- --url http://localhost:3000 --wcag 2.2AA
 ```
 
+#### Option D : Activer l'analyse ergonomique qualitative humaine par IA (--ai)
+Activez l'analyse multimodale vision-langage pour évaluer ce que les scripts ne peuvent pas mesurer (charge cognitive, tonalité, clarté du flux, affordance) :
+```bash
+# Analyse IA avec Google Gemini (défaut) via GEMINI_API_KEY
+npm run audit -- --url http://localhost:3000 --ai
+
+# Analyse IA avec OpenAI (gpt-4o) via OPENAI_API_KEY
+npm run audit -- --url http://localhost:3000 --ai --ai-provider openai
+
+# Analyse IA avec Anthropic (claude-3-5-sonnet) via ANTHROPIC_API_KEY
+npm run audit -- --url http://localhost:3000 --ai --ai-provider anthropic
+
+# Personnaliser le modèle utilisé
+npm run audit -- --url http://localhost:3000 --ai --ai-provider gemini --ai-model gemini-2.5-flash
+```
+
+> **Configuration des clés d'API :** Renseignez vos clés dans un fichier `.env` à la racine de `tools/` ou dans votre environnement : `GEMINI_API_KEY`, `OPENAI_API_KEY`, `ANTHROPIC_API_KEY`. En cas de clé absente ou d'erreur réseau, le système applique une **dégradation gracieuse** : l'audit se poursuit sans bloquer avec les résultats scriptés.
+
 **Ce que vous allez observer :**
 - Captures d'écran automatiques dans `.audit-results/screenshots/` (Desktop 1440px et Mobile 375px).
+- **Marqueurs visuels in-situ & Cartographie :** La sonde génère une capture annotée globale (`screenshot-desktop-annotated.png`) avec des cadres et pilules de repérage numérotées, ainsi que des extraits ciblés (`marker-SPEC-XX.png`) pour chaque anomalie.
+- **Analyse IA Qualitative & Psychologie Cognitive :** Section dédiée dans le rapport Markdown avec évaluation de la charge mentale, de la micro-copie, de l'affordance et de l'harmonie visuelle, ainsi que le verdict global de l'ergonome IA.
+- **Double lecture du score SEGA :** Affichage conjoint du *Score SEGA Global* (Technique + IA) et du *Score SEGA Technique* (règles scriptées).
 - Audit axe-core et module WCAG (conformité par principe : Perceptible, Utilisable, Compréhensible, Robuste).
-- Taux de conformité WCAG calculé (ex: 82% conforme).
+- Taux de conformité WCAG calculé (ex: 80% conforme).
 - Détection des débordements horizontaux sur mobile.
-- Génération du rapport `.audit-results/AUDIT_REPORT.md` (avec section dédiée WCAG) et `.audit-results/WCAG_REPORT.json`.
+- Génération du rapport `.audit-results/AUDIT_REPORT.md` (intégrant la cartographie visuelle, l'analyse cognitive IA et les aperçus annotés par fiche) et `.audit-results/AI_ANALYSIS.json`.
 
 ---
 
@@ -176,14 +203,14 @@ Le skill `ergonomic-review` peut être sollicité directement par conversation a
 
 ---
 
-## 📊 Comprendre les résultats d'audit
+## Comprendre les résultats d'audit
 
 Chaque audit produit :
 1. **Le score SEGA (0 à 100) :**
-   - 🟢 `85 - 100` : Excellent niveau d'utilisabilité.
-   - 🟡 `70 - 84` : Bon niveau avec frictions localisées.
-   - 🟠 `50 - 69` : Frictions ergonomiques notables.
-   - 🔴 `< 50` : Risque élevé de rejet ou abandon utilisateur.
+   - `85 - 100` : Excellent niveau d'utilisabilité.
+   - `70 - 84` : Bon niveau avec frictions localisées.
+   - `50 - 69` : Frictions ergonomiques notables.
+   - `< 50` : Risque élevé de rejet ou abandon utilisateur.
 2. **La matrice Sévérité / Effort :**
    - **Sévérité (0 à 4) :** Cosmétique (1), Mineur (2), Majeur (3), Catastrophe (4).
    - **Quick-Wins :** Fort impact (sévérité 2 ou 3) pour un effort de correction faible (< 0.5 jour).
@@ -195,7 +222,7 @@ Chaque audit produit :
 
 ---
 
-## 📚 Référentiels & Documentation
+## Référentiels & Documentation
 
 - [AGENTS.md](AGENTS.md) : Directives d'ingénierie, gestion Git, isolation par Worktrees et conventions de commits.
 - [SPECIFICATIONS.md](SPECIFICATIONS.md) : Cahier des charges exhaustif.

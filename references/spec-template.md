@@ -21,6 +21,10 @@ Chaque problème identifié lors de l'audit ergonomique fait l'objet d'une fiche
 - **Capture / Preuve :** `{{CHEMIN_CAPTURE_OU_LIGNE_CODE}}`
 - **Impact sur l'expérience :** {{POURQUOI_CELA_GENE_L_UTILISATEUR_COGNITIF_OU_ACTION}}
 
+#### 📸 Diagnostic Visuel & Marqueur In-Situ
+![Marqueur visuel SPEC-{{ID}}](screenshots/marker-SPEC-{{ID}}.png)
+> 📍 **Marqueur visuel #{{NUM_MARQUEUR}}** positionné sur l'élément en anomalie (`{{CSS_SELECTOR}}`).
+
 ---
 
 #### 2. Spécification UX/UI Cible (Comportement Attendu)

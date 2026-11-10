@@ -3,6 +3,8 @@ import { AuditReportData, Finding, UNIFIED_AXES } from '../types';
 
 export function calculateSegaScore(findings: Finding[]): {
   score: number;
+  technicalScore: number;
+  globalScore: number;
   catastrophes: number;
   majors: number;
   minors: number;
@@ -15,6 +17,11 @@ export function calculateSegaScore(findings: Finding[]): {
   let cosmetics = 0;
   let quickWins = 0;
 
+  let techCatastrophes = 0;
+  let techMajors = 0;
+  let techMinors = 0;
+  let techCosmetics = 0;
+
   for (const f of findings) {
     if (f.severity === 4) catastrophes++;
     else if (f.severity === 3) majors++;
@@ -22,13 +29,25 @@ export function calculateSegaScore(findings: Finding[]): {
     else if (f.severity === 1) cosmetics++;
 
     if (f.isQuickWin) quickWins++;
+
+    if (f.source !== 'ai') {
+      if (f.severity === 4) techCatastrophes++;
+      else if (f.severity === 3) techMajors++;
+      else if (f.severity === 2) techMinors++;
+      else if (f.severity === 1) techCosmetics++;
+    }
   }
 
-  const penalty = catastrophes * 15 + majors * 7 + minors * 2 + cosmetics * 0.5;
-  const score = Math.max(0, Math.min(100, Math.round(100 - penalty)));
+  const globalPenalty = catastrophes * 15 + majors * 7 + minors * 2 + cosmetics * 0.5;
+  const globalScore = Math.max(0, Math.min(100, Math.round(100 - globalPenalty)));
+
+  const techPenalty = techCatastrophes * 15 + techMajors * 7 + techMinors * 2 + techCosmetics * 0.5;
+  const technicalScore = Math.max(0, Math.min(100, Math.round(100 - techPenalty)));
 
   return {
-    score,
+    score: globalScore,
+    technicalScore,
+    globalScore,
     catastrophes,
     majors,
     minors,
@@ -51,7 +70,17 @@ export function buildMarkdownReport(data: AuditReportData): string {
   lines.push(``);
   lines.push(`| Indicateur | Valeur | Appréciation |`);
   lines.push(`| :--- | :--- | :--- |`);
-  lines.push(`| **Score Global SEGA** | **${data.segaScore} / 100** | ${getScoreBadge(data.segaScore)} |`);
+
+  if (data.aiAnalysis) {
+    const globalScore = data.segaScoreGlobal ?? data.segaScore;
+    const techScore = data.segaScoreTechnical ?? data.metrics.technicalScore ?? data.segaScore;
+    lines.push(`| **Score SEGA Global (Technique + IA)** | **${globalScore} / 100** | ${getScoreBadge(globalScore)} |`);
+    lines.push(`| **Score SEGA Technique (Déterministe)** | **${techScore} / 100** | ${getScoreBadge(techScore)} |`);
+    lines.push(`| **Analyse IA Qualitative** | **Actif (${data.aiAnalysis.provider.toUpperCase()} / \`${data.aiAnalysis.model}\`)** | 🧠 Regard humain intégré |`);
+  } else {
+    lines.push(`| **Score Global SEGA** | **${data.segaScore} / 100** | ${getScoreBadge(data.segaScore)} |`);
+  }
+
   if (data.wcag) {
     const wcagAppreciation =
       data.wcag.complianceRate >= 90
@@ -98,8 +127,68 @@ export function buildMarkdownReport(data: AuditReportData): string {
     lines.push(``);
   }
 
-  // Section 2 : Répartition par Méta-Axe
-  lines.push(`## 2. Répartition par Méta-Axe Ergonomique`);
+  // Cartographie visuelle des marqueurs
+  if (data.screenshots?.desktopAnnotated) {
+    const annotatedFilename = path.basename(data.screenshots.desktopAnnotated);
+    lines.push(`### 📸 Cartographie Visuelle des Anomalies Détectées`);
+    lines.push(``);
+    lines.push(
+      `La capture d'écran ci-dessous localise précisément sur l'interface les anomalies ergonomiques et d'accessibilité détectées. Chaque défaut est repéré par un cadre de délimitation et une balise numérotée selon son niveau de gravité :`
+    );
+    lines.push(``);
+    lines.push(`![Cartographie visuelle des anomalies](screenshots/${annotatedFilename})`);
+    lines.push(``);
+
+    const markedFindings = data.findings.filter((f) => f.visualMarker);
+    if (markedFindings.length > 0) {
+      lines.push(`| N° Marqueur | Réf. Fiche | Sévérité | Problème Détecté | Localisation DOM |`);
+      lines.push(`| :---: | :--- | :---: | :--- | :--- |`);
+
+      for (const f of markedFindings) {
+        const marker = f.visualMarker!;
+        const badgeEmoji = getSeverityEmoji(f.severity);
+        const refAnchor = `#${f.id.toLowerCase()}`;
+        lines.push(
+          `| ${badgeEmoji} **#${marker.markerNumber}** | [**${f.id}**](${refAnchor}) | ${getSeverityLabel(f.severity)} | ${f.title} | \`${f.location}\` |`
+        );
+      }
+      lines.push(``);
+    }
+  }
+
+  let sectionIndex = 2;
+
+  // Section Optionnelle : Analyse Qualitative & Psychologie Cognitive (IA)
+  if (data.aiAnalysis) {
+    const summary = data.aiAnalysis.narrativeSummary;
+    lines.push(`## ${sectionIndex++}. Analyse Qualitative & Psychologie Cognitive (IA Human-Centered)`);
+    lines.push(``);
+    lines.push(
+      `> 🧠 **Regard Humain & Ergonomie Cognitive :** Cette évaluation est générée par le modèle vision-langage **${data.aiAnalysis.provider.toUpperCase()}** (\`${data.aiAnalysis.model}\`). Elle aborde les facteurs psychologiques, l'encombrement attentionnel et la tonalité qui échappent aux analyseurs syntaxiques déterministes.`
+    );
+    lines.push(``);
+    lines.push(`### ⚖️ Verdict Global de l'Ergonome IA`);
+    lines.push(`${summary.generalVerdict}`);
+    lines.push(``);
+    lines.push(`### 🔍 Dimensions Heuristiques & Cognitives Évaluées`);
+    lines.push(``);
+    lines.push(`| Dimension Cognitive | Évaluation Experte |`);
+    lines.push(`| :--- | :--- |`);
+    lines.push(`| 🧠 **Charge cognitive & Encombrement** | ${summary.cognitiveLoadEvaluation} |`);
+    lines.push(`| 💬 **Ton, Clarté & Micro-copie** | ${summary.toneAndMicrocopyEvaluation} |`);
+    lines.push(`| 🧭 **Modèles mentaux & Affordance** | ${summary.navigationAndMentalModelsEvaluation} |`);
+    lines.push(`| 🎨 **Harmonie visuelle & Sobriété** | ${summary.aestheticAndVisualHarmony} |`);
+    lines.push(``);
+
+    if (summary.strengths && summary.strengths.length > 0) {
+      lines.push(`### 🏆 Points Forts & Réussites Ergonomiques`);
+      summary.strengths.forEach((s: string) => lines.push(`- ✅ ${s}`));
+      lines.push(``);
+    }
+  }
+
+  // Section : Répartition par Méta-Axe
+  lines.push(`## ${sectionIndex++}. Répartition par Méta-Axe Ergonomique`);
   lines.push(``);
   lines.push(`| Axe Ergonomique Unifié | Nb Constats | Statut |`);
   lines.push(`| :--- | :---: | :--- |`);
@@ -111,15 +200,16 @@ export function buildMarkdownReport(data: AuditReportData): string {
   }
   lines.push(``);
 
-  // Section 3 : Fiches de Spécifications UX/UI Prescriptives
-  lines.push(`## 3. Fiches de Spécifications UX/UI Prescriptives`);
+  // Section : Fiches de Spécifications UX/UI Prescriptives
+  lines.push(`## ${sectionIndex++}. Fiches de Spécifications UX/UI Prescriptives`);
   lines.push(``);
   lines.push(`> Ces fiches décrivent le comportement cible attendu, la micro-copie corrigée et le diff de code prêt pour l'équipe technique.`);
   lines.push(``);
 
   for (const f of data.findings) {
     const axisInfo = UNIFIED_AXES[f.axis];
-    lines.push(`### [${f.id}] [${axisInfo.title}] ${f.title}`);
+    const sourceBadge = f.source === 'ai' ? '🤖 [IA / Qualitatif]' : '⚙️ [Script / Technique]';
+    lines.push(`### [${f.id}] [${axisInfo.title}] ${f.title} ${sourceBadge}`);
     lines.push(``);
     lines.push(`| Propriété | Détail |`);
     lines.push(`| :--- | :--- |`);
@@ -137,6 +227,7 @@ export function buildMarkdownReport(data: AuditReportData): string {
     } else if (f.pageUrl) {
       lines.push(`| **Page impactée** | \`${f.pageUrl}\` |`);
     }
+    lines.push(`| **Origine de la détection** | ${f.source === 'ai' ? '🧠 Analyse qualitative IA (regard humain)' : '🔍 Sonde scriptée déterministe'} |`);
     lines.push(`| **Localisation** | \`${f.location}\` |`);
     lines.push(`| **Heuristique Bastien & Scapin** | ${f.bastienScapinRule} |`);
     lines.push(`| **Heuristique Nielsen** | ${f.nielsenRule} |`);
@@ -173,12 +264,21 @@ export function buildMarkdownReport(data: AuditReportData): string {
       lines.push(`\`\`\``);
     }
 
+    if (f.visualMarker?.screenshotPath) {
+      const snippetFilename = path.basename(f.visualMarker.screenshotPath);
+      lines.push(``);
+      lines.push(`#### 📸 Diagnostic Visuel & Marqueur In-Situ`);
+      lines.push(``);
+      lines.push(`![Marqueur visuel ${f.id}](screenshots/${snippetFilename})`);
+      lines.push(`> 📍 **Marqueur visuel #${f.visualMarker.markerNumber}** positionné sur l'élément en anomalie (\`${f.location}\`).`);
+    }
+
     lines.push(`\n---\n`);
   }
 
-  // Section 4 : Audit de Conformité Accessibilité Numérique (WCAG)
+  // Section : Audit de Conformité Accessibilité Numérique (WCAG)
   if (data.wcag) {
-    lines.push(`## 4. Audit de Conformité Accessibilité Numérique (${data.wcag.standard})`);
+    lines.push(`## ${sectionIndex++}. Audit de Conformité Accessibilité Numérique (${data.wcag.standard})`);
     lines.push(``);
     lines.push(`| Indicateur WCAG | Valeur |`);
     lines.push(`| :--- | :---: |`);
@@ -225,7 +325,48 @@ export function buildMarkdownReport(data: AuditReportData): string {
     }
   }
 
+  // Section 5 : Annexes & Captures d'Écran
+  if (data.screenshots?.desktop || data.screenshots?.mobile || data.screenshots?.desktopAnnotated) {
+    lines.push(`## 5. Annexes & Captures d'Écran`);
+    lines.push(``);
+    lines.push(
+      `Pour archivage ou revue complémentaire, les captures d'écran générées lors de la session d'audit sont consultables ci-dessous :`
+    );
+    lines.push(``);
+    if (data.screenshots.desktop) {
+      lines.push(
+        `- 🖥️ **Capture Desktop originale (1440×900) :** [\`screenshots/${path.basename(data.screenshots.desktop)}\`](screenshots/${path.basename(data.screenshots.desktop)})`
+      );
+    }
+    if (data.screenshots.mobile) {
+      lines.push(
+        `- 📱 **Capture Mobile originale (375×812) :** [\`screenshots/${path.basename(data.screenshots.mobile)}\`](screenshots/${path.basename(data.screenshots.mobile)})`
+      );
+    }
+    if (data.screenshots.desktopAnnotated) {
+      lines.push(
+        `- 🎯 **Capture Desktop avec Marqueurs Visuels :** [\`screenshots/${path.basename(data.screenshots.desktopAnnotated)}\`](screenshots/${path.basename(data.screenshots.desktopAnnotated)})`
+      );
+    }
+    lines.push(``);
+  }
+
   return lines.join('\n');
+}
+
+function getSeverityEmoji(severity: number): string {
+  switch (severity) {
+    case 4:
+      return '🔴';
+    case 3:
+      return '🟠';
+    case 2:
+      return '🟡';
+    case 1:
+      return '🔵';
+    default:
+      return '⚪';
+  }
 }
 
 function getImpactBadge(impact: string): string {

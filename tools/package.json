@@ -14,7 +14,8 @@
     "check": "npm run typecheck && npm run test && npm run build",
     "start": "node dist/index.js",
     "audit": "node dist/index.js audit",
-    "audit:code": "node dist/index.js code"
+    "audit:code": "node dist/index.js code",
+    "test": "npm run build && node dist/index.js code -p ../examples/demo-app/BadCheckoutForm.tsx && node dist/__tests__/ai.test.js"
   },
   "keywords": [
     "ux",
@@ -30,9 +31,11 @@
     "@axe-core/playwright": "^4.10.1",
     "chalk": "^4.1.2",
     "commander": "^12.1.0",
+    "dotenv": "^18.0.10",
     "playwright": "^1.49.1"
   },
   "devDependencies": {
+    "@types/dotenv": "^6.1.1",
     "@types/node": "^20.14.0",
     "typescript": "^5.4.5",
     "vitest": "^5.1.0"

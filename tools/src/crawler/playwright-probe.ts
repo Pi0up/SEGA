@@ -2,8 +2,10 @@ import { chromium } from 'playwright';
 import AxeBuilder from '@axe-core/playwright';
 import * as path from 'path';
 import * as fs from 'fs';
-import { Finding, WcagReportData, CrawlSummary } from '../types';
+import { Finding, WcagReportData, AuditScreenshotData, AiConfig, AiAnalysisResult, CrawlSummary } from '../types';
 import { runWcagAnalysis } from '../wcag';
+import { annotateAndCaptureScreenshots } from '../visual';
+import { runAiErgonomicAnalysis } from '../ai';
 import { runExploratoryCrawl } from './exploratory-crawler';
 
 export interface CrawlOptions {
@@ -22,17 +24,16 @@ export interface ProbeOptions {
     enabled: boolean;
     standard?: string;
   };
+  ai?: AiConfig;
   crawl?: CrawlOptions;
 }
 
 export interface ProbeResult {
   findings: Finding[];
-  screenshots: {
-    desktop: string;
-    mobile: string;
-  };
+  screenshots: AuditScreenshotData;
   wcag?: WcagReportData;
   crawl?: CrawlSummary;
+  aiAnalysis?: AiAnalysisResult;
 }
 
 export async function runPlaywrightProbe(options: ProbeOptions): Promise<ProbeResult> {
@@ -60,11 +61,16 @@ export async function runPlaywrightProbe(options: ProbeOptions): Promise<ProbeRe
   const findings: Finding[] = [];
   let findingCounter = 1;
   let wcagReport: WcagReportData | undefined;
+  let desktopAnnotated: string | undefined;
+  let desktopSnippets: Array<{ findingId: string; path: string; title: string; markerNumber: number }> = [];
 
   const nextId = () => `SPEC-${String(findingCounter++).padStart(2, '0')}`;
 
   const desktopScreenshot = path.join(screenshotsDir, 'screenshot-desktop.png');
   const mobileScreenshot = path.join(screenshotsDir, 'screenshot-mobile.png');
+  let pageTitle: string | undefined;
+  let domSummary: any;
+  let aiAnalysisResult: AiAnalysisResult | undefined;
 
   try {
     // 1. Desktop inspection (1440x900)
@@ -85,6 +91,31 @@ export async function runPlaywrightProbe(options: ProbeOptions): Promise<ProbeRe
     await page.waitForLoadState('load', { timeout: 15000 }).catch(() => {});
     await page.waitForTimeout(2000); // Laisser le temps aux rendus dynamiques et polices
     await page.screenshot({ path: desktopScreenshot, fullPage: false });
+
+    pageTitle = await page.title().catch(() => undefined);
+    domSummary = await page
+      .evaluate(() => {
+        const headings = Array.from(document.querySelectorAll('h1, h2, h3'))
+          .map((el) => (el.textContent || '').trim())
+          .filter(Boolean);
+        const buttonsCount = document.querySelectorAll('button, [role="button"]').length;
+        const linksCount = document.querySelectorAll('a[href]').length;
+        const formsCount = document.querySelectorAll('form').length;
+        const inputsCount = document.querySelectorAll('input, select, textarea').length;
+        const paragraphs = Array.from(document.querySelectorAll('p, span'))
+          .map((el) => (el.textContent || '').trim())
+          .filter((t) => t.length > 20 && t.length < 150)
+          .slice(0, 8);
+        return {
+          headings,
+          buttonsCount,
+          linksCount,
+          formsCount,
+          inputsCount,
+          keyTexts: paragraphs
+        };
+      })
+      .catch(() => undefined);
 
     // Console errors finding (Axe 5 : Gestion des erreurs)
     if (consoleErrors.length > 0) {
@@ -122,13 +153,15 @@ export async function runPlaywrightProbe(options: ProbeOptions): Promise<ProbeRe
         const axeResults = await new AxeBuilder({ page }).analyze();
         for (const violation of axeResults.violations) {
           if (violation.id === 'color-contrast') {
+            const selector = violation.nodes[0]?.target.join(' ');
             findings.push({
               id: nextId(),
               axis: 'axis-1',
               bastienScapinRule: '1.4 Lisibilité',
               nielsenRule: '#8 Design esthétique et minimaliste',
               title: 'Défaut de contraste typographique (non-conformité WCAG)',
-              location: violation.nodes[0]?.target.join(' ') || 'Éléments textuels variés',
+              location: selector || 'Éléments textuels variés',
+              selector,
               severity: 2,
               effort: 'Faible',
               isQuickWin: true,
@@ -138,13 +171,15 @@ export async function runPlaywrightProbe(options: ProbeOptions): Promise<ProbeRe
               codeSnippetAfter: 'color: #475569; /* Contraste conforme WCAG AA (≥ 4.5:1) */'
             });
           } else if (violation.id === 'label') {
+            const selector = violation.nodes[0]?.target.join(' ');
             findings.push({
               id: nextId(),
               axis: 'axis-1',
               bastienScapinRule: '1.1 Incitation',
               nielsenRule: '#1 Visibilité de l état du système',
               title: 'Champs de formulaire sans étiquette (<label>) explicite',
-              location: violation.nodes[0]?.target.join(' ') || 'Champs input',
+              location: selector || 'Champs input',
+              selector,
               severity: 3,
               effort: 'Faible',
               isQuickWin: true,
@@ -154,13 +189,15 @@ export async function runPlaywrightProbe(options: ProbeOptions): Promise<ProbeRe
               codeSnippetAfter: '<label htmlFor="userName">Votre nom</label>\n<input id="userName" type="text" />'
             });
           } else if (violation.id === 'button-name') {
+            const selector = violation.nodes[0]?.target.join(' ');
             findings.push({
               id: nextId(),
               axis: 'axis-8',
               bastienScapinRule: '8.0 Compatibilité',
               nielsenRule: '#6 Reconnaissance plutôt que rappel',
               title: 'Boutons interactifs dépourvus de texte accessible',
-              location: violation.nodes[0]?.target.join(' ') || 'Boutons icônes',
+              location: selector || 'Boutons icônes',
+              selector,
               severity: 3,
               effort: 'Faible',
               isQuickWin: true,
@@ -216,6 +253,7 @@ export async function runPlaywrightProbe(options: ProbeOptions): Promise<ProbeRe
           nielsenRule: '#6 Reconnaissance plutôt que rappel',
           title: "Éléments cliquables dépourvus d'affordance native et d'accès clavier",
           location: issue.selector,
+          selector: issue.selector,
           severity: 3,
           effort: 'Faible',
           isQuickWin: true,
@@ -225,6 +263,15 @@ export async function runPlaywrightProbe(options: ProbeOptions): Promise<ProbeRe
           codeSnippetAfter: `<button type="button" onClick={handleClick}>Action</button>`
         });
       }
+    }
+
+    // 3.5. Génération des marqueurs visuels et capture annotée (Desktop)
+    try {
+      const annotationResult = await annotateAndCaptureScreenshots(page, findings, screenshotsDir, 'desktop');
+      desktopAnnotated = annotationResult.annotatedScreenshotPath;
+      desktopSnippets = annotationResult.snippets;
+    } catch (annotationErr) {
+      console.warn(`[Ergo-Review] Avertissement: la génération des marqueurs visuels a échoué:`, annotationErr);
     }
 
     await context.close();
@@ -265,6 +312,32 @@ export async function runPlaywrightProbe(options: ProbeOptions): Promise<ProbeRe
     }
 
     await mobileContext.close();
+
+    // 5. Analyse Qualitative & Cognitive par IA (Multimodale)
+    if (options.ai?.enabled) {
+      try {
+        const knownIssues = findings.map((f) => `[${f.axis}] ${f.title} (${f.observation})`);
+        aiAnalysisResult = await runAiErgonomicAnalysis({
+          config: options.ai,
+          request: {
+            url: options.url,
+            pageTitle,
+            desktopScreenshotPath: desktopScreenshot,
+            mobileScreenshotPath: mobileScreenshot,
+            domSummary,
+            scriptFindingsCount: findings.length,
+            knownIssuesSummary: knownIssues
+          },
+          nextFindingId: nextId
+        });
+
+        if (aiAnalysisResult && aiAnalysisResult.findings.length > 0) {
+          findings.push(...aiAnalysisResult.findings);
+        }
+      } catch (aiErr) {
+        console.warn(`[Ergo-Review] Erreur non bloquante lors de l'analyse IA :`, aiErr);
+      }
+    }
   } finally {
     await browser.close();
   }
@@ -273,8 +346,11 @@ export async function runPlaywrightProbe(options: ProbeOptions): Promise<ProbeRe
     findings,
     screenshots: {
       desktop: desktopScreenshot,
-      mobile: mobileScreenshot
+      mobile: mobileScreenshot,
+      desktopAnnotated,
+      annotatedSnippets: desktopSnippets
     },
-    wcag: wcagReport
+    wcag: wcagReport,
+    aiAnalysis: aiAnalysisResult
   };
 }
