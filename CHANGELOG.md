@@ -2,6 +2,12 @@
 
 Toutes les modifications notables apportées au projet SEGA / Ergonomic Reviewer sont consignées dans ce fichier.
 
+## [1.2.0](https://github.com/Pi0up/SEGA/compare/v1.1.0...v1.2.0) (2026-11-10)
+
+### ✨ Features
+
+* **test:** integrate Vitest test suite and build verification scripts ([50745fd](https://github.com/Pi0up/SEGA/commit/50745fd3af8c2ef054bd1ac2f0b283f96d146a78))
+
 ## [1.1.0](https://github.com/Pi0up/SEGA/compare/v1.0.0...v1.1.0) (2026-11-10)
 
 ### ✨ Features

@@ -1,6 +1,6 @@
 {
   "name": "sega",
-  "version": "1.1.0",
+  "version": "1.2.0",
   "description": "SEGA (Système d'Évaluation Globale de l'Accessibilité et de l'Ergonomie) — Skill & Outils d'Audit Ergonomique Expert",
   "private": true,
   "workspaces": [
