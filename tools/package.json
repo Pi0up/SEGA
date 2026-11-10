@@ -12,7 +12,14 @@
     "audit": "node dist/index.js audit",
     "audit:code": "node dist/index.js code"
   },
-  "keywords": ["ux", "ergonomics", "bastien-scapin", "nielsen", "playwright", "audit"],
+  "keywords": [
+    "ux",
+    "ergonomics",
+    "bastien-scapin",
+    "nielsen",
+    "playwright",
+    "audit"
+  ],
   "author": "Antigravity UX Team",
   "license": "MIT",
   "dependencies": {
