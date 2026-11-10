@@ -96,6 +96,9 @@ export interface Finding {
   codeSnippetBefore?: string;
   codeSnippetAfter?: string;
   wcagCriterion?: string;
+  pageUrl?: string;
+  pageTitle?: string;
+  affectedPages?: string[];
 }
 
 export type WcagPrinciple = 'Perceptible' | 'Utilisable' | 'Compréhensible' | 'Robuste';
@@ -141,6 +144,29 @@ export interface WcagReportData {
   };
 }
 
+export interface ExploredPage {
+  url: string;
+  path: string;
+  title: string;
+  status: number;
+  depth: number;
+  durationMs: number;
+  findingsCount: number;
+  wcagViolationsCount?: number;
+  screenshots?: {
+    desktop?: string;
+    mobile?: string;
+  };
+}
+
+export interface CrawlSummary {
+  enabled: boolean;
+  maxPages: number;
+  maxDepth: number;
+  totalPagesExplored: number;
+  pages: ExploredPage[];
+}
+
 export interface AuditReportData {
   target: string;
   date: string;
@@ -159,4 +185,5 @@ export interface AuditReportData {
     quickWins: number;
   };
   wcag?: WcagReportData;
+  crawl?: CrawlSummary;
 }

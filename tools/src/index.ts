@@ -19,11 +19,23 @@ program
   .requiredOption('-u, --url <url>', 'URL de la page ou application à auditer')
   .option('-o, --output <dir>', 'Répertoire de sortie des rapports', '.audit-results')
   .option('-w, --wcag [standard]', 'Activer le module de vérification WCAG (ex: 2.1AA, 2.2AA, 2.0AA, AAA)', false)
+  .option('-c, --crawl', 'Activer le mode exploratoire multi-pages', false)
+  .option('-p, --max-pages <number>', 'Nombre maximal de pages à explorer en mode crawl', '5')
+  .option('-d, --max-depth <number>', 'Profondeur maximale de navigation en mode crawl', '2')
+  .option('--no-same-origin', 'Autoriser l exploration hors du domaine d origine')
   .action(async (options) => {
     const isWcagEnabled = options.wcag !== false && options.wcag !== undefined;
     const wcagStandard = typeof options.wcag === 'string' ? options.wcag : '2.1AA';
+    const isCrawlEnabled = options.crawl === true || (options.maxPages && parseInt(options.maxPages, 10) > 1 && options.crawl !== false);
+    const maxPages = parseInt(options.maxPages || '5', 10);
+    const maxDepth = parseInt(options.maxDepth || '2', 10);
 
     console.log(`[Ergo-Review] Démarrage de l'audit Playwright sur : ${options.url}`);
+    if (isCrawlEnabled) {
+      console.log(
+        `[Ergo-Review] 🗺️ Mode exploratoire multi-pages actif (max ${maxPages} pages, profondeur max ${maxDepth})`
+      );
+    }
     if (isWcagEnabled) {
       console.log(`[Ergo-Review] ♿ Module WCAG activé avec le standard : ${wcagStandard}`);
     }
@@ -37,6 +49,14 @@ program
           ? {
               enabled: true,
               standard: wcagStandard
+            }
+          : undefined,
+        crawl: isCrawlEnabled
+          ? {
+              enabled: true,
+              maxPages,
+              maxDepth,
+              sameOrigin: options.sameOrigin !== false
             }
           : undefined
       });
@@ -52,7 +72,8 @@ program
           totalFindings: probeResult.findings.length,
           ...metrics
         },
-        wcag: probeResult.wcag
+        wcag: probeResult.wcag,
+        crawl: probeResult.crawl
       };
 
       const markdown = buildMarkdownReport(reportData);
@@ -64,7 +85,17 @@ program
         fs.writeFileSync(wcagJsonPath, JSON.stringify(probeResult.wcag, null, 2), 'utf-8');
       }
 
+      if (probeResult.crawl) {
+        const crawlJsonPath = path.join(outputDir, 'CRAWL_REPORT.json');
+        fs.writeFileSync(crawlJsonPath, JSON.stringify(probeResult.crawl, null, 2), 'utf-8');
+      }
+
       console.log(`[Ergo-Review] ✅ Audit terminé !`);
+      if (probeResult.crawl) {
+        console.log(
+          `[Ergo-Review] 🗺️ Exploration : ${probeResult.crawl.totalPagesExplored} page(s) auditée(s) (profondeur max : ${probeResult.crawl.maxDepth})`
+        );
+      }
       console.log(`[Ergo-Review] Score SEGA : ${metrics.score}/100`);
       if (probeResult.wcag) {
         console.log(

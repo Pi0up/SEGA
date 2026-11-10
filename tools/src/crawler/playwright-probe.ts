@@ -2,8 +2,18 @@ import { chromium } from 'playwright';
 import AxeBuilder from '@axe-core/playwright';
 import * as path from 'path';
 import * as fs from 'fs';
-import { Finding, WcagReportData } from '../types';
+import { Finding, WcagReportData, CrawlSummary } from '../types';
 import { runWcagAnalysis } from '../wcag';
+import { runExploratoryCrawl } from './exploratory-crawler';
+
+export interface CrawlOptions {
+  enabled: boolean;
+  maxPages?: number;
+  maxDepth?: number;
+  sameOrigin?: boolean;
+  allowedPatterns?: string[];
+  disallowedPatterns?: string[];
+}
 
 export interface ProbeOptions {
   url: string;
@@ -12,6 +22,7 @@ export interface ProbeOptions {
     enabled: boolean;
     standard?: string;
   };
+  crawl?: CrawlOptions;
 }
 
 export interface ProbeResult {
@@ -21,10 +32,25 @@ export interface ProbeResult {
     mobile: string;
   };
   wcag?: WcagReportData;
+  crawl?: CrawlSummary;
 }
 
 export async function runPlaywrightProbe(options: ProbeOptions): Promise<ProbeResult> {
   const outputDir = options.outputDir || path.resolve(process.cwd(), '.audit-results');
+
+  if (options.crawl?.enabled) {
+    return runExploratoryCrawl({
+      startUrl: options.url,
+      outputDir,
+      maxPages: options.crawl.maxPages,
+      maxDepth: options.crawl.maxDepth,
+      sameOrigin: options.crawl.sameOrigin,
+      allowedPatterns: options.crawl.allowedPatterns,
+      disallowedPatterns: options.crawl.disallowedPatterns,
+      wcag: options.wcag
+    });
+  }
+
   const screenshotsDir = path.join(outputDir, 'screenshots');
   if (!fs.existsSync(screenshotsDir)) {
     fs.mkdirSync(screenshotsDir, { recursive: true });
