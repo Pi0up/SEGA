@@ -4,7 +4,7 @@ import * as path from 'path';
 import * as fs from 'fs';
 import { Finding, WcagReportData, AuditScreenshotData, AiConfig, AiAnalysisResult, CrawlSummary } from '../types';
 import { runWcagAnalysis } from '../wcag';
-import { annotateAndCaptureScreenshots } from '../visual';
+import { annotateAndCaptureScreenshots, captureAndSaveScreenshot } from '../visual';
 import { runAiErgonomicAnalysis } from '../ai';
 import { runExploratoryCrawl } from './exploratory-crawler';
 import { normalizeUrl } from './link-extractor';
@@ -68,8 +68,8 @@ export async function runPlaywrightProbe(options: ProbeOptions): Promise<ProbeRe
 
   const nextId = () => `SPEC-${String(findingCounter++).padStart(2, '0')}`;
 
-  const desktopScreenshot = path.join(screenshotsDir, 'screenshot-desktop.png');
-  const mobileScreenshot = path.join(screenshotsDir, 'screenshot-mobile.png');
+  let desktopScreenshot = path.join(screenshotsDir, 'screenshot-desktop.png');
+  let mobileScreenshot = path.join(screenshotsDir, 'screenshot-mobile.png');
   let pageTitle: string | undefined;
   let domSummary: any;
   let aiAnalysisResult: AiAnalysisResult | undefined;
@@ -92,7 +92,8 @@ export async function runPlaywrightProbe(options: ProbeOptions): Promise<ProbeRe
     await page.goto(targetUrl, { waitUntil: 'domcontentloaded', timeout: 30000 });
     await page.waitForLoadState('load', { timeout: 15000 }).catch(() => {});
     await page.waitForTimeout(2000); // Laisser le temps aux rendus dynamiques et polices
-    await page.screenshot({ path: desktopScreenshot, fullPage: false });
+    const savedDesktop = await captureAndSaveScreenshot(page, desktopScreenshot, { fullPage: false });
+    desktopScreenshot = savedDesktop.fullPath;
 
     pageTitle = await page.title().catch(() => undefined);
     domSummary = await page
@@ -288,7 +289,8 @@ export async function runPlaywrightProbe(options: ProbeOptions): Promise<ProbeRe
     await mobilePage.goto(targetUrl, { waitUntil: 'domcontentloaded', timeout: 30000 });
     await mobilePage.waitForLoadState('load', { timeout: 15000 }).catch(() => {});
     await mobilePage.waitForTimeout(2000);
-    await mobilePage.screenshot({ path: mobileScreenshot, fullPage: false });
+    const savedMobile = await captureAndSaveScreenshot(mobilePage, mobileScreenshot, { fullPage: false });
+    mobileScreenshot = savedMobile.fullPath;
 
     // Check horizontal overflow
     const hasHorizontalOverflow = await mobilePage.evaluate(() => {
