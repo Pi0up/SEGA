@@ -14,6 +14,15 @@ describe('Link Extractor & URL Normalization', () => {
     expect(normalized).toBe('https://example.com/contact');
   });
 
+  it('infers protocol when missing for localhost and standard hosts', () => {
+    expect(normalizeUrl('localhost:3000')).toBe('http://localhost:3000/');
+    expect(normalizeUrl('localhost:8080/dashboard/')).toBe('http://localhost:8080/dashboard');
+    expect(normalizeUrl('127.0.0.1:4000/api')).toBe('http://127.0.0.1:4000/api');
+    expect(normalizeUrl('example.com')).toBe('https://example.com/');
+    expect(normalizeUrl('my-app.org/about/')).toBe('https://my-app.org/about');
+    expect(normalizeUrl('')).toBeNull();
+  });
+
   it('rejects unsupported protocols (javascript:, mailto:, tel:)', () => {
     expect(normalizeUrl('javascript:alert(1)')).toBeNull();
     expect(normalizeUrl('mailto:contact@example.com')).toBeNull();
