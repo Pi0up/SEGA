@@ -79,7 +79,7 @@ export async function runExploratoryCrawl(
       const pageIndex = exploredPages.length + 1;
 
       console.log(
-        `[Ergo-Review] 🌐 Exploration [${pageIndex}/${maxPages}] : ${item.url} (Profondeur ${item.depth})...`
+        `[SEGA] 🌐 Exploration [${pageIndex}/${maxPages}] : ${item.url} (Profondeur ${item.depth})...`
       );
 
       try {
@@ -107,7 +107,7 @@ export async function runExploratoryCrawl(
         }
 
         console.log(
-          `[Ergo-Review]  ↳ Titre : "${pageResult.title}" | Problèmes : ${pageResult.findings.length} | Liens découverts : ${pageResult.discoveredLinks.length}`
+          `[SEGA]  ↳ Titre : "${pageResult.title}" | Problèmes : ${pageResult.findings.length} | Liens découverts : ${pageResult.discoveredLinks.length}`
         );
 
         exploredPages.push({
@@ -141,7 +141,7 @@ export async function runExploratoryCrawl(
           }
         }
       } catch (pageErr) {
-        console.warn(`[Ergo-Review] ⚠️ Échec de l'audit sur la page ${item.url} :`, pageErr);
+        console.warn(`[SEGA] ⚠️ Échec de l'audit sur la page ${item.url} :`, pageErr);
       }
     }
   } finally {

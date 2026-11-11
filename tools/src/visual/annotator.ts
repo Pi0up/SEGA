@@ -299,7 +299,7 @@ export async function annotateAndCaptureScreenshots(
         }
       }
     } catch (err) {
-      console.warn(`[Ergo-Review] Avertissement: Impossible de capturer le snippet pour ${finding.id}:`, err);
+      console.warn(`[SEGA] Avertissement: Impossible de capturer le snippet pour ${finding.id}:`, err);
     }
   }
 

@@ -1,6 +1,6 @@
 # Instructions pour les Agents IA et Développeurs (`AGENTS.md`)
 
-Ce document définit les directives d'ingénierie logicielle, les conventions Git, les règles de contribution, l'outillage et l'automatisation du versioning pour ce projet (`ergonomic-review` / SEGA).
+Ce document définit les directives d'ingénierie logicielle, les conventions Git, les règles de contribution, l'outillage et l'automatisation du versioning pour ce projet (**SEGA**).
 
 ---
 

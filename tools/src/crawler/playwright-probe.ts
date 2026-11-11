@@ -146,7 +146,7 @@ export async function runPlaywrightProbe(options: ProbeOptions): Promise<ProbeRe
         wcagReport = wcagResult.wcagReport;
         findings.push(...wcagResult.findings);
       } catch (err) {
-        console.warn(`[Ergo-Review] Avertissement: le module WCAG a rencontré une erreur:`, err);
+        console.warn(`[SEGA] Avertissement: le module WCAG a rencontré une erreur:`, err);
       }
     } else {
       try {
@@ -271,7 +271,7 @@ export async function runPlaywrightProbe(options: ProbeOptions): Promise<ProbeRe
       desktopAnnotated = annotationResult.annotatedScreenshotPath;
       desktopSnippets = annotationResult.snippets;
     } catch (annotationErr) {
-      console.warn(`[Ergo-Review] Avertissement: la génération des marqueurs visuels a échoué:`, annotationErr);
+      console.warn(`[SEGA] Avertissement: la génération des marqueurs visuels a échoué:`, annotationErr);
     }
 
     await context.close();
@@ -335,7 +335,7 @@ export async function runPlaywrightProbe(options: ProbeOptions): Promise<ProbeRe
           findings.push(...aiAnalysisResult.findings);
         }
       } catch (aiErr) {
-        console.warn(`[Ergo-Review] Erreur non bloquante lors de l'analyse IA :`, aiErr);
+        console.warn(`[SEGA] Erreur non bloquante lors de l'analyse IA :`, aiErr);
       }
     }
   } finally {

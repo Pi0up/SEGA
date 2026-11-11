@@ -1,6 +1,6 @@
 # Changelog
 
-Toutes les modifications notables apportées au projet SEGA / Ergonomic Reviewer sont consignées dans ce fichier.
+Toutes les modifications notables apportées au projet SEGA sont consignées dans ce fichier.
 
 ## [1.3.0](https://github.com/Pi0up/SEGA/compare/v1.2.0...v1.3.0) (2026-11-10)
 
