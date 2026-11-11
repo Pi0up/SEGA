@@ -5,6 +5,7 @@ import * as fs from 'fs';
 import { Finding, WcagReportData } from '../types';
 import { runWcagAnalysis } from '../wcag';
 import { extractLinksFromPage } from './link-extractor';
+import { captureAndSaveScreenshot } from '../visual';
 
 export interface PageAuditOptions {
   url: string;
@@ -63,11 +64,11 @@ export async function auditSinglePage(
   const lastSegment = pathname.split('/').filter(Boolean).pop() || 'home';
   const pageSlug = sanitizeSlug(lastSegment);
 
-  const desktopScreenshot = path.join(
+  let desktopScreenshot = path.join(
     screenshotsDir,
     `screenshot-p${options.pageIndex}-${pageSlug}-desktop.png`
   );
-  const mobileScreenshot = path.join(
+  let mobileScreenshot = path.join(
     screenshotsDir,
     `screenshot-p${options.pageIndex}-${pageSlug}-mobile.png`
   );
@@ -103,7 +104,8 @@ export async function auditSinglePage(
     await desktopPage.waitForTimeout(1500);
 
     title = (await desktopPage.title()) || options.url;
-    await desktopPage.screenshot({ path: desktopScreenshot, fullPage: false });
+    const savedDesktop = await captureAndSaveScreenshot(desktopPage, desktopScreenshot, { fullPage: false });
+    desktopScreenshot = savedDesktop.fullPath;
 
     // Extraction des liens éligibles pour le crawler
     discoveredLinks = await extractLinksFromPage(
@@ -360,7 +362,8 @@ export async function auditSinglePage(
     });
     await mobilePage.waitForLoadState('load', { timeout: 15000 }).catch(() => {});
     await mobilePage.waitForTimeout(1500);
-    await mobilePage.screenshot({ path: mobileScreenshot, fullPage: false });
+    const savedMobile = await captureAndSaveScreenshot(mobilePage, mobileScreenshot, { fullPage: false });
+    mobileScreenshot = savedMobile.fullPath;
 
     // Vérification du débordement horizontal
     const mobileMetrics = await mobilePage.evaluate(() => {

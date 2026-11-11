@@ -2,6 +2,7 @@ import { Page } from 'playwright';
 import * as path from 'path';
 import * as fs from 'fs';
 import { Finding, NielsenSeverity, VisualMarker } from '../types';
+import { captureAndSaveScreenshot } from './screenshot-saver';
 
 /**
  * Retourne la couleur hexadécimale associée à la sévérité Nielsen
@@ -227,9 +228,9 @@ export async function annotateAndCaptureScreenshots(
     return located;
   }, markerDescriptors);
 
-  // 3. Capturer la vue globale annotée
+  // 3. Capturer la vue globale annotée de manière résiliente
   const annotatedScreenshotPath = path.join(screenshotsDir, `screenshot-${prefix}-annotated.png`);
-  await page.screenshot({ path: annotatedScreenshotPath, fullPage: false });
+  const savedAnnotated = await captureAndSaveScreenshot(page, annotatedScreenshotPath, { fullPage: false });
 
   // 4. Capturer les extraits ciblés (snippets) pour chaque constat localisé
   const snippets: Array<{ findingId: string; path: string; title: string; markerNumber: number }> = [];
@@ -267,8 +268,7 @@ export async function annotateAndCaptureScreenshots(
         const clipHeight = Math.min(viewport.height - clipY, Math.max(140, Math.ceil(clientRect.height + padY * 2)));
 
         if (clipWidth > 0 && clipHeight > 0) {
-          await page.screenshot({
-            path: snippetPath,
+          const savedSnippet = await captureAndSaveScreenshot(page, snippetPath, {
             clip: {
               x: clipX,
               y: clipY,
@@ -278,21 +278,20 @@ export async function annotateAndCaptureScreenshots(
           });
 
           // Stocker le marqueur visuel sur l'objet Finding
-          const relativePath = path.join('screenshots', snippetFilename).replace(/\\/g, '/');
           const visualMarker: VisualMarker = {
             markerNumber: marker.markerNumber,
             badgeLabel: `#${marker.markerNumber} ${finding.id}`,
             severity: finding.severity,
             color: marker.color,
             boundingBox: marker.boundingBox,
-            screenshotPath: relativePath,
-            fullScreenshotPath: snippetPath
+            screenshotPath: savedSnippet.relativePath,
+            fullScreenshotPath: savedSnippet.fullPath
           };
           finding.visualMarker = visualMarker;
 
           snippets.push({
             findingId: finding.id,
-            path: relativePath,
+            path: savedSnippet.relativePath,
             title: finding.title,
             markerNumber: marker.markerNumber
           });
@@ -310,7 +309,7 @@ export async function annotateAndCaptureScreenshots(
   });
 
   return {
-    annotatedScreenshotPath,
+    annotatedScreenshotPath: savedAnnotated.fullPath,
     snippets
   };
 }
