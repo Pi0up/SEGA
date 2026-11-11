@@ -9,6 +9,7 @@
   "scripts": {
     "build": "npm --workspace=tools run build",
     "typecheck": "npm --workspace=tools run typecheck",
+    "playwright:install": "npx --workspace=tools playwright install --with-deps chromium",
     "test:unit": "npm --workspace=tools run test",
     "test:fixture": "node tools/dist/index.js code -p examples/demo-app/BadCheckoutForm.tsx",
     "test": "npm run typecheck && npm run test:unit && npm run build && npm run test:fixture",
