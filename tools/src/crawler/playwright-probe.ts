@@ -7,6 +7,7 @@ import { runWcagAnalysis } from '../wcag';
 import { annotateAndCaptureScreenshots, captureAndSaveScreenshot } from '../visual';
 import { runAiErgonomicAnalysis } from '../ai';
 import { runExploratoryCrawl } from './exploratory-crawler';
+import { normalizeUrl } from './link-extractor';
 
 export interface CrawlOptions {
   enabled: boolean;
@@ -38,10 +39,11 @@ export interface ProbeResult {
 
 export async function runPlaywrightProbe(options: ProbeOptions): Promise<ProbeResult> {
   const outputDir = options.outputDir || path.resolve(process.cwd(), '.audit-results');
+  const targetUrl = normalizeUrl(options.url) || options.url;
 
   if (options.crawl?.enabled) {
     return runExploratoryCrawl({
-      startUrl: options.url,
+      startUrl: targetUrl,
       outputDir,
       maxPages: options.crawl.maxPages,
       maxDepth: options.crawl.maxDepth,
@@ -87,7 +89,7 @@ export async function runPlaywrightProbe(options: ProbeOptions): Promise<ProbeRe
       }
     });
 
-    await page.goto(options.url, { waitUntil: 'domcontentloaded', timeout: 30000 });
+    await page.goto(targetUrl, { waitUntil: 'domcontentloaded', timeout: 30000 });
     await page.waitForLoadState('load', { timeout: 15000 }).catch(() => {});
     await page.waitForTimeout(2000); // Laisser le temps aux rendus dynamiques et polices
     const savedDesktop = await captureAndSaveScreenshot(page, desktopScreenshot, { fullPage: false });
@@ -284,7 +286,7 @@ export async function runPlaywrightProbe(options: ProbeOptions): Promise<ProbeRe
       hasTouch: true
     });
     const mobilePage = await mobileContext.newPage();
-    await mobilePage.goto(options.url, { waitUntil: 'domcontentloaded', timeout: 30000 });
+    await mobilePage.goto(targetUrl, { waitUntil: 'domcontentloaded', timeout: 30000 });
     await mobilePage.waitForLoadState('load', { timeout: 15000 }).catch(() => {});
     await mobilePage.waitForTimeout(2000);
     const savedMobile = await captureAndSaveScreenshot(mobilePage, mobileScreenshot, { fullPage: false });
@@ -322,7 +324,7 @@ export async function runPlaywrightProbe(options: ProbeOptions): Promise<ProbeRe
         aiAnalysisResult = await runAiErgonomicAnalysis({
           config: options.ai,
           request: {
-            url: options.url,
+            url: targetUrl,
             pageTitle,
             desktopScreenshotPath: desktopScreenshot,
             mobileScreenshotPath: mobileScreenshot,

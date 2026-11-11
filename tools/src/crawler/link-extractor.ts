@@ -47,7 +47,31 @@ const TRACKING_PARAMS = new Set([
  */
 export function normalizeUrl(rawUrl: string, baseUrl?: string): string | null {
   try {
-    const parsed = new URL(rawUrl, baseUrl);
+    let urlToParse = rawUrl.trim();
+    if (!urlToParse) {
+      return null;
+    }
+
+    // Si aucune baseUrl n'est fournie et que la chaîne n'a pas de protocole explicite,
+    // inférer http:// pour localhost/IP et https:// pour les noms d'hôtes standards.
+    if (!baseUrl) {
+      if (
+        urlToParse.startsWith('localhost') ||
+        urlToParse.startsWith('127.0.0.1') ||
+        urlToParse.startsWith('0.0.0.0') ||
+        urlToParse.startsWith('::1')
+      ) {
+        urlToParse = `http://${urlToParse}`;
+      } else if (
+        !/^[a-zA-Z][a-zA-Z0-9+.-]*:/.test(urlToParse) &&
+        !urlToParse.startsWith('/') &&
+        !urlToParse.startsWith('.')
+      ) {
+        urlToParse = `https://${urlToParse}`;
+      }
+    }
+
+    const parsed = new URL(urlToParse, baseUrl);
 
     // Uniquement http, https et file
     if (parsed.protocol !== 'http:' && parsed.protocol !== 'https:' && parsed.protocol !== 'file:') {
