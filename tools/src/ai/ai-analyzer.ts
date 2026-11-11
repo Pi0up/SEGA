@@ -25,7 +25,7 @@ function encodeImageFile(filePath?: string): EncodedImage | undefined {
       mimeType
     };
   } catch (err) {
-    console.warn(`[Ergo-Review AI] Impossible d'encoder l'image ${filePath} :`, err);
+    console.warn(`[SEGA AI] Impossible d'encoder l'image ${filePath} :`, err);
     return undefined;
   }
 }
@@ -40,13 +40,13 @@ export async function runAiErgonomicAnalysis(
   }
 
   const providerName = config.provider || 'gemini';
-  console.log(`[Ergo-Review AI] 🧠 Lancement de l'analyse qualitative humaine via ${providerName.toUpperCase()}...`);
+  console.log(`[SEGA AI] 🧠 Lancement de l'analyse qualitative humaine via ${providerName.toUpperCase()}...`);
 
   try {
     const client = createAiProviderClient(providerName, config.apiKey);
     const modelToUse = config.model || client.defaultModel;
 
-    console.log(`[Ergo-Review AI] 🤖 Modèle sélectionné : ${modelToUse}`);
+    console.log(`[SEGA AI] 🤖 Modèle sélectionné : ${modelToUse}`);
 
     // Encoder les captures d'écran en base64 pour l'analyse multimodale
     const desktopImage = encodeImageFile(request.desktopScreenshotPath);
@@ -54,7 +54,7 @@ export async function runAiErgonomicAnalysis(
 
     if (desktopImage || mobileImage) {
       console.log(
-        `[Ergo-Review AI] 📸 Analyse multimodale activée (${[
+        `[SEGA AI] 📸 Analyse multimodale activée (${[
           desktopImage ? 'Desktop 1440px' : null,
           mobileImage ? 'Mobile 375px' : null
         ]
@@ -62,7 +62,7 @@ export async function runAiErgonomicAnalysis(
           .join(' + ')})`
       );
     } else {
-      console.log(`[Ergo-Review AI] ℹ️ Aucune capture d'écran disponible, analyse basée sur les métadonnées de page.`);
+      console.log(`[SEGA AI] ℹ️ Aucune capture d'écran disponible, analyse basée sur les métadonnées de page.`);
     }
 
     const rawResponse: AiRawResponse = await client.analyze(
@@ -129,7 +129,7 @@ export async function runAiErgonomicAnalysis(
     });
 
     console.log(
-      `[Ergo-Review AI] ✅ Analyse IA terminée : ${validatedFindings.length} constat(s) qualitatif(s) identifié(s).`
+      `[SEGA AI] ✅ Analyse IA terminée : ${validatedFindings.length} constat(s) qualitatif(s) identifié(s).`
     );
 
     return {
@@ -151,9 +151,9 @@ export async function runAiErgonomicAnalysis(
       findings: validatedFindings
     };
   } catch (err: any) {
-    console.warn(`\n[Ergo-Review AI] ⚠️ Dégradation gracieuse : L'analyse IA n'a pas pu aboutir.`);
-    console.warn(`[Ergo-Review AI] Détail de l'incident : ${err?.message || err}`);
-    console.warn(`[Ergo-Review AI] L'audit continue normalement avec les règles et métriques techniques.\n`);
+    console.warn(`\n[SEGA AI] ⚠️ Dégradation gracieuse : L'analyse IA n'a pas pu aboutir.`);
+    console.warn(`[SEGA AI] Détail de l'incident : ${err?.message || err}`);
+    console.warn(`[SEGA AI] L'audit continue normalement avec les règles et métriques techniques.\n`);
     return undefined;
   }
 }

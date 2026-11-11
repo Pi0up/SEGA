@@ -13,8 +13,8 @@ dotenv.config();
 const program = new Command();
 
 program
-  .name('ergo-audit')
-  .description('Audit ergonomique expert basé sur Bastien & Scapin et Nielsen')
+  .name('sega')
+  .description('SEGA — Système d\'Évaluation Globale de l\'Accessibilité et de l\'Ergonomie (Bastien & Scapin × Nielsen × WCAG)')
   .version('1.0.0');
 
 program
@@ -39,17 +39,17 @@ program
     const maxPages = parseInt(options.maxPages || '5', 10);
     const maxDepth = parseInt(options.maxDepth || '2', 10);
 
-    console.log(`[Ergo-Review] Démarrage de l'audit Playwright sur : ${options.url}`);
+    console.log(`[SEGA] Démarrage de l'audit Playwright sur : ${options.url}`);
     if (isCrawlEnabled) {
       console.log(
-        `[Ergo-Review] 🗺️ Mode exploratoire multi-pages actif (max ${maxPages} pages, profondeur max ${maxDepth})`
+        `[SEGA] 🗺️ Mode exploratoire multi-pages actif (max ${maxPages} pages, profondeur max ${maxDepth})`
       );
     }
     if (isWcagEnabled) {
-      console.log(`[Ergo-Review] ♿ Module WCAG activé avec le standard : ${wcagStandard}`);
+      console.log(`[SEGA] ♿ Module WCAG activé avec le standard : ${wcagStandard}`);
     }
     if (isAiEnabled) {
-      console.log(`[Ergo-Review] 🧠 Analyse qualitative IA activée (Provider: ${aiProvider.toUpperCase()})`);
+      console.log(`[SEGA] 🧠 Analyse qualitative IA activée (Provider: ${aiProvider.toUpperCase()})`);
     }
     const outputDir = path.resolve(process.cwd(), options.output);
     
@@ -117,32 +117,32 @@ program
         fs.writeFileSync(aiJsonPath, JSON.stringify(probeResult.aiAnalysis, null, 2), 'utf-8');
       }
 
-      console.log(`[Ergo-Review] ✅ Audit terminé !`);
+      console.log(`[SEGA] ✅ Audit terminé !`);
       if (probeResult.crawl) {
         console.log(
-          `[Ergo-Review] 🗺️ Exploration : ${probeResult.crawl.totalPagesExplored} page(s) auditée(s) (profondeur max : ${probeResult.crawl.maxDepth})`
+          `[SEGA] 🗺️ Exploration : ${probeResult.crawl.totalPagesExplored} page(s) auditée(s) (profondeur max : ${probeResult.crawl.maxDepth})`
         );
       }
       if (probeResult.aiAnalysis) {
-        console.log(`[Ergo-Review] Score SEGA Global : ${metrics.globalScore}/100 | Score Technique : ${metrics.technicalScore}/100`);
-        console.log(`[Ergo-Review] 🧠 Constats qualitatifs IA : ${probeResult.aiAnalysis.findings.length} (${probeResult.aiAnalysis.provider.toUpperCase()} / ${probeResult.aiAnalysis.model})`);
+        console.log(`[SEGA] Score SEGA Global : ${metrics.globalScore}/100 | Score Technique : ${metrics.technicalScore}/100`);
+        console.log(`[SEGA] 🧠 Constats qualitatifs IA : ${probeResult.aiAnalysis.findings.length} (${probeResult.aiAnalysis.provider.toUpperCase()} / ${probeResult.aiAnalysis.model})`);
       } else {
-        console.log(`[Ergo-Review] Score SEGA : ${metrics.score}/100`);
+        console.log(`[SEGA] Score SEGA : ${metrics.score}/100`);
       }
       if (probeResult.wcag) {
         console.log(
-          `[Ergo-Review] ♿ Taux de conformité ${probeResult.wcag.standard} : ${probeResult.wcag.complianceRate}% (${probeResult.wcag.violationsCount} violation(s))`
+          `[SEGA] ♿ Taux de conformité ${probeResult.wcag.standard} : ${probeResult.wcag.complianceRate}% (${probeResult.wcag.violationsCount} violation(s))`
         );
       }
       if (probeResult.screenshots.desktopAnnotated) {
         console.log(
-          `[Ergo-Review] 📸 Marqueurs visuels : ${probeResult.screenshots.annotatedSnippets?.length || 0} snippet(s) et cartographie générés dans ${outputDir}/screenshots`
+          `[SEGA] 📸 Marqueurs visuels : ${probeResult.screenshots.annotatedSnippets?.length || 0} snippet(s) et cartographie générés dans ${outputDir}/screenshots`
         );
       }
-      console.log(`[Ergo-Review] Problèmes détectés : ${probeResult.findings.length} (dont ${metrics.quickWins} Quick-Wins)`);
-      console.log(`[Ergo-Review] Rapport généré : ${reportPath}`);
+      console.log(`[SEGA] Problèmes détectés : ${probeResult.findings.length} (dont ${metrics.quickWins} Quick-Wins)`);
+      console.log(`[SEGA] Rapport généré : ${reportPath}`);
     } catch (err) {
-      console.error(`[Ergo-Review] ❌ Erreur lors de l'audit :`, err);
+      console.error(`[SEGA] ❌ Erreur lors de l'audit :`, err);
       process.exit(1);
     }
   });
@@ -153,7 +153,7 @@ program
   .requiredOption('-p, --path <path>', 'Chemin du dossier ou fichier à inspecter')
   .option('-o, --output <dir>', 'Répertoire de sortie', '.audit-results')
   .action(async (options) => {
-    console.log(`[Ergo-Review] Démarrage de l'analyse statique sur : ${options.path}`);
+    console.log(`[SEGA] Démarrage de l'analyse statique sur : ${options.path}`);
     const outputDir = path.resolve(process.cwd(), options.output);
     if (!fs.existsSync(outputDir)) {
       fs.mkdirSync(outputDir, { recursive: true });
@@ -178,12 +178,12 @@ program
       const reportPath = path.join(outputDir, 'CODE_AUDIT_REPORT.md');
       fs.writeFileSync(reportPath, markdown, 'utf-8');
 
-      console.log(`[Ergo-Review] ✅ Analyse terminée !`);
-      console.log(`[Ergo-Review] Score SEGA : ${metrics.score}/100`);
-      console.log(`[Ergo-Review] Problèmes détectés : ${findings.length}`);
-      console.log(`[Ergo-Review] Rapport généré : ${reportPath}`);
+      console.log(`[SEGA] ✅ Analyse terminée !`);
+      console.log(`[SEGA] Score SEGA : ${metrics.score}/100`);
+      console.log(`[SEGA] Problèmes détectés : ${findings.length}`);
+      console.log(`[SEGA] Rapport généré : ${reportPath}`);
     } catch (err) {
-      console.error(`[Ergo-Review] ❌ Erreur lors de l'analyse :`, err);
+      console.error(`[SEGA] ❌ Erreur lors de l'analyse :`, err);
       process.exit(1);
     }
   });

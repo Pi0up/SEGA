@@ -150,7 +150,7 @@ export async function auditSinglePage(
           findings.push(f);
         }
       } catch (err) {
-        console.warn(`[Ergo-Review] Avertissement WCAG sur ${options.url}:`, err);
+        console.warn(`[SEGA] Avertissement WCAG sur ${options.url}:`, err);
       }
     } else {
       try {

@@ -1,6 +1,6 @@
 # Matrice Heuristique Unifiée : Bastien & Scapin × Nielsen
 
-Cette matrice constitue la base méthodologique de référence du skill **Ergonomic Reviewer**. Elle élimine les redondances entre les deux écoles d'ergonomie et classe chaque problème dans un **méta-axe unique**.
+Cette matrice constitue la base méthodologique de référence du skill **SEGA**. Elle élimine les redondances entre les deux écoles d'ergonomie et classe chaque problème dans un **méta-axe unique**.
 
 ---
 

@@ -1,5 +1,5 @@
-# Spécifications Techniques et Fonctionnelles
-# Skill & Outils d'Audit Ergonomique Expert (Bastien & Scapin × Nielsen)
+# Spécifications Techniques et Fonctionnelles — SEGA
+# Système d'Évaluation Globale de l'Accessibilité et de l'Ergonomie (Bastien & Scapin × Nielsen × WCAG)
 
 ## 1. Contexte & Définition du Besoin
 

@@ -1,9 +1,10 @@
 {
-  "name": "ergonomic-review-tools",
+  "name": "sega-tools",
   "version": "1.3.0",
-  "description": "Outils d'audit ergonomique automatisé (Playwright + Analyseur statique) pour le skill Ergonomic Reviewer",
+  "description": "SEGA — Outils d'audit ergonomique et d'accessibilité automatisés (Playwright + Analyseur statique)",
   "main": "dist/index.js",
   "bin": {
+    "sega": "./dist/index.js",
     "ergo-audit": "./dist/index.js"
   },
   "scripts": {
@@ -17,14 +18,17 @@
     "audit:code": "node dist/index.js code"
   },
   "keywords": [
+    "sega",
     "ux",
     "ergonomics",
+    "accessibility",
+    "wcag",
     "bastien-scapin",
     "nielsen",
     "playwright",
     "audit"
   ],
-  "author": "Antigravity UX Team",
+  "author": "SEGA Team",
   "license": "MIT",
   "dependencies": {
     "@axe-core/playwright": "^4.10.1",

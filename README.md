@@ -1,5 +1,5 @@
-# Ergonomic Reviewer — Skill & Outils d'Audit Ergonomique Expert
-> **Référentiel unifié : Bastien & Scapin (INRIA 1993) × Jakob Nielsen (NN/g 1994)**  
+# SEGA — Système d'Évaluation Globale de l'Accessibilité et de l'Ergonomie
+> **Référentiel unifié : Bastien & Scapin (INRIA 1993) × Jakob Nielsen (NN/g 1994) × WCAG (W3C)**  
 > Détection automatisée des problématiques IHM, calcul du score **SEGA** sur 100 et génération de **spécifications UX/UI prescriptives** avec micro-copie et code diff.
 
 ---
@@ -35,7 +35,7 @@
     ├── package.json
     ├── tsconfig.json
     └── src/
-        ├── index.ts                  # CLI runner (ergo-audit)
+        ├── index.ts                  # CLI runner (sega / ergo-audit)
         ├── types.ts                  # Définitions de types, 8 axes et score SEGA
         ├── crawler/
         │   └── playwright-probe.ts   # Sonde Playwright (DOM, axe-core, captures, console)
@@ -189,7 +189,7 @@ node dist/index.js audit --url http://localhost:3000 -c -p 5 -w 2.1AA
 
 ### Test 3 : Tester le Skill Antigravity dans le chat
 
-Le skill `ergonomic-review` peut être sollicité directement par conversation avec l'agent.
+Le skill `sega` peut être sollicité directement par conversation avec l'agent.
 
 **Exemples de requêtes à soumettre :**
 1. **Audit de code source :**
